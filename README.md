@@ -1,6 +1,6 @@
 # River Temperature Dashboard
 
-# Observable Framework
+# Observable Framework usage
 
 This is an [Observable Framework](https://observablehq.com/framework/) app. To install the required dependencies, run:
 
