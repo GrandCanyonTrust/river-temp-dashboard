@@ -413,7 +413,7 @@ body, .observablehq--root {
 /* ────────────────────────────────────────────────────────────── */
 
 .section-card {
-  background: var(--color-bg-card);
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 1.25rem 1.25rem 1rem;
@@ -499,7 +499,7 @@ body, .observablehq--root {
   text-align: left;
   padding: 0.4rem 0.9rem;
   border-bottom: 2px solid var(--color-accent-rust);
-  background: var(--color-bg-card);
+  background: #ffffff;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -511,10 +511,10 @@ body, .observablehq--root {
   color: var(--color-text-body);
   padding: 0.35rem 0.9rem;
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg-card);
+  background: #ffffff;
 }
 .recent-table tbody tr:nth-child(even) td {
-  background: var(--color-bg-card-alt);
+  background: #FAF7F5;
 }
 .recent-table .cell-temp {
   font-family: var(--font-mono);

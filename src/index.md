@@ -149,7 +149,7 @@ display(htl.html`<div class="hero">
     <div class="hero-left">
       <p class="hero-eyebrow">Colorado River Mile 10</p>
       <h1 class="hero-title">Smallmouth Bass Spawning Threshold and Daily Water Temperature</h1>
-      <p class="hero-sub">Daily water temperature and smallmouth bass spawning threshold tracking</p>
+      <p class="hero-sub">Monitoring conditions that support native fish over invasive smallmouth bass</p>
     </div>
     <div class="hero-right">
       <div class="hero-temp">${currentTemp?.toFixed(1)}<span class="hero-temp-unit">°F</span></div>
@@ -473,7 +473,7 @@ const legendEntries = [
   const totalHeight = chartHeight + legendHeight;
 
   const combined = `<svg xmlns="http://www.w3.org/2000/svg" width="${chartWidth}" height="${totalHeight}" viewBox="0 0 ${chartWidth} ${totalHeight}">
-    <rect width="${chartWidth}" height="${totalHeight}" fill="#FEECD8"/>
+    <rect width="${chartWidth}" height="${totalHeight}" fill="#ffffff"/>
     <g>${chartClone.innerHTML}</g>
     <g transform="translate(8, ${chartHeight})">${legendItemsSvg}</g>
   </svg>`;
