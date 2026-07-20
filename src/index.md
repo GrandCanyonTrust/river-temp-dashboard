@@ -190,13 +190,15 @@ const focusYearEl = (() => {
   const root = htl.html`<div class="pill-group" role="radiogroup" aria-label="View"></div>`;
 
   for (const opt of yearOptions) {
-    const swatch = yearColors[opt]?.color ?? null;
+    // Note: swatch dots were removed from the pills themselves — the
+    // legend below the chart already maps each year to its color, so
+    // repeating it here just added clutter and extra pill width.
     const btn = htl.html`<button
       type="button"
       class="pill"
       role="radio"
       aria-checked="false"
-    >${swatch ? htl.html`<span class="pill-swatch" style=${{background: swatch}}></span>` : null}<span>${opt}</span></button>`;
+    ><span>${opt}</span></button>`;
     btn.dataset.value = opt;
     root.appendChild(btn);
   }
@@ -667,7 +669,9 @@ display(exportBtn);
 
 ```js
 display(htl.html`
-  <p class="page-footer">USGS OBSERVATIONS • DIBBLE ET AL. (2020) FRAMEWORK</p>
-  <p class="page-footer">Graphs may be used for non-commercial purposes provided that they are not altered or edited and they are appropriately credited to the Grand Canyon Trust.</p>
+  <footer class="site-footer">
+    <p class="site-footer-citation">USGS Observations · Dibble et al. (2020) Framework</p>
+    <p class="site-footer-credit">Graphs may be used for non-commercial purposes provided that they are not altered or edited and are appropriately credited to the Grand Canyon Trust.</p>
+  </footer>
 `);
 ```

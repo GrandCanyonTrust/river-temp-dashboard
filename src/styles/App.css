@@ -252,14 +252,28 @@ body, .observablehq--root {
   font-family: var(--font-mono);
 }
 
-/* ── Page footer ── */
-.page-footer {
+/* ── Site footer ── */
+.site-footer {
   margin-top: 1.5rem;
   border-top: 1px solid var(--color-border);
-  padding-top: 0.5rem;
+  padding-top: 0.6rem;
+}
+.site-footer p {
+  margin: 0;
+}
+.site-footer-citation {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  margin-bottom: 0.3rem;
+}
+.site-footer-credit {
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: 13px;
   font-style: italic;
+  line-height: 1.4;
   color: var(--color-text-footer);
 }
 
@@ -314,12 +328,6 @@ body, .observablehq--root {
   color: #ffffff;
 }
 .pill-selected:hover { border-color: #561B11; color: #ffffff; }
-.pill-swatch {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex: none;
-}
 
 .toggle-row {
   display: flex;
