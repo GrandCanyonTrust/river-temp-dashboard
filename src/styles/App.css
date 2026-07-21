@@ -106,7 +106,7 @@ body, .observablehq--root {
 .hero-left .hero-eyebrow,
 .hero > .hero-eyebrow {
   font-family: var(--font-sans);
-  font-size: 20px;
+  font-size: 18px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: #000000;
