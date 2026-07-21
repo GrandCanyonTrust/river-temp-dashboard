@@ -15,8 +15,8 @@ DT <- function(x, ...) {
 ## Water temperature (degrees C) has been measured (with gaps) since 1986-10-17.
 ## Mean daily dischage (feet^3/sec) has been measure every day since 1986-10-17.
 USGS_gage_daily_parameters <-
-    function(gage_ID, dates = c("1986-10-17", "2050-01-01"))
-{
+  function(gage_ID, dates = c("1986-10-17", "2050-01-01"))
+  {
     ## Parameter & statistic codes at, respectively:
     ## (https://api.waterdata.usgs.gov/ogcapi/v0/collections/parameter-codes/items)
     ## (https://api.waterdata.usgs.gov/ogcapi/v0/collections/statistic-codes/items)
@@ -28,19 +28,56 @@ USGS_gage_daily_parameters <-
                                 statistic_id = statistic_id,
                                 time = dates,
                                 skipGeometry = TRUE) %>%
-        data.table()
+      data.table()
     cfs <- read_waterdata_daily(monitoring_location_id = gage_ID,
                                 parameter_code = discharge_cfs,
                                 statistic_id = statistic_id,
                                 time = dates,
                                 skipGeometry = TRUE) %>%
-        data.table()
+      data.table()
     cfs <- cfs[, .(date = time, cfs = value)]
     tmp <- tmp[, .(date = time, tmp = value)] %>%
-        setkey(date)
+      setkey(date)
     x <- tmp[cfs, ]
     x[]
+  }
+
+
+##------------------------------------------------------------------------------
+## (0b) Read the target river mile from the shared config file
+##------------------------------------------------------------------------------
+
+## This data loader can't `import` config.js the way the .md pages do
+## (config.js is an ES module; this is R), so instead we read the file
+## as plain text and pull the RIVER_MILE value out with a regex. This
+## keeps ONE number as the source of truth (config.js) instead of a
+## second hardcoded copy living here.
+##
+## NOTE: the loader's own filename ("RM15_water_temp.csv") is fixed for
+## now and does NOT necessarily match RIVER_MILE below 
+read_river_mile <- function(path_candidates = c("../config.js",
+                                                "./config.js",
+                                                "./src/config.js",
+                                                "../src/config.js"))
+{
+  for (p in path_candidates) {
+    if (file.exists(p)) {
+      cfg <- readLines(p, warn = FALSE)
+      hit <- grep("RIVER_MILE", cfg, value = TRUE)
+      hit <- hit[grepl("=", hit)]
+      if (length(hit) > 0) {
+        val <- sub(".*RIVER_MILE\\s*=\\s*([0-9.]+).*", "\\1", hit[1])
+        return(as.numeric(val))
+      }
+    }
+  }
+  stop("Could not locate RIVER_MILE in config.js (checked: ",
+       paste(path_candidates, collapse = ", "),
+       "). Add the correct relative path to read_river_mile()'s ",
+       "path_candidates.")
 }
+
+river_mile <- read_river_mile()
 
 
 ##------------------------------------------------------------------------------
@@ -91,43 +128,48 @@ k     <-  0.08
 
 
 ##------------------------------------------------------------------------------
-## (3) Compute temp at river mile 10 from observations at Lees Ferry (RM0)
+## (3) Compute temp at the configured river mile from observations at Lees
+## Ferry (RM0)
 ## ------------------------------------------------------------------------------
 
 f <- function(date = "2024-01-10",
               T0_LF = 9.51318234,
               Q = 14177.9107)
 {
-    ## Extract input values for current month
-    month <- month(as.Date(date))
-    Ta <- Ta[month]
-    GHI <- GHI[month]
-
-    ## Convert ft^3/s to m^3/s, following pattern in spreadsheet model formulae
-    Q <- Q/(3.281^3)
-
-    ## Center and scale, using values in spreadsheet model formulae
-    Ta <- (Ta - 15.20539) / 10
-    GHI <- (GHI - 225.339848) / 100
-
-    ## T_e from Equation S3 (page 14)
-    Te <- beta0 + (betaA * Ta) + (betaS * GHI)
-
-    ## Term multiplying RM in exponential decay portion of the formula.
-    ##
-    ## NOTE: this equation (with "-b" rather than "b" in the exponent) is
-    ## correct, not the equation recorded on p. 3 of Dibble 2020's Appendix S2.
-    e_mult <- -(k*(Q^-b))
-
-    ## Use formula "in reverse" to compute Glen Canyon outlet water temp from
-    ## measured temperature at Lees Ferry, 15 miles downstream.
-    RM <- 15
-    T0 <- ((T0_LF - Te)/(exp(e_mult * RM))) + Te
-
-    ## Use formula in "forward" direction to compute temp RM miles downstream
-    RM <- 30
-    Te + (T0 - Te)*(exp(e_mult * RM)) |>
-        round(4)
+  ## Extract input values for current month
+  month <- month(as.Date(date))
+  Ta <- Ta[month]
+  GHI <- GHI[month]
+  
+  ## Convert ft^3/s to m^3/s, following pattern in spreadsheet model formulae
+  Q <- Q/(3.281^3)
+  
+  ## Center and scale, using values in spreadsheet model formulae
+  Ta <- (Ta - 15.20539) / 10
+  GHI <- (GHI - 225.339848) / 100
+  
+  ## T_e from Equation S3 (page 14)
+  Te <- beta0 + (betaA * Ta) + (betaS * GHI)
+  
+  ## Term multiplying RM in exponential decay portion of the formula.
+  ##
+  ## NOTE: this equation (with "-b" rather than "b" in the exponent) is
+  ## correct, not the equation recorded on p. 3 of Dibble 2020's Appendix S2.
+  e_mult <- -(k*(Q^-b))
+  
+  ## Use formula "in reverse" to compute Glen Canyon outlet water temp from
+  ## measured temperature at Lees Ferry, 15 miles downstream. This "15" is
+  ## the fixed physical distance from the dam to the Lees Ferry gage --
+  ## it is NOT the configurable output river mile, and should stay as-is
+  ## regardless of what RIVER_MILE/river_mile is set to.
+  RM <- 15
+  T0 <- ((T0_LF - Te)/(exp(e_mult * RM))) + Te
+  
+  ## Use formula in "forward" direction to compute temp RM miles
+  ## downstream -- at the river mile configured in config.js.
+  RM <- river_mile
+  Te + (T0 - Te)*(exp(e_mult * RM)) |>
+    round(4)
 }
 
 ## Apply function to each observation
@@ -135,6 +177,3 @@ DAT[, tmp := f(date, tmp, cfs)]
 
 ## Write results to stdout (as required for an Observable Framework data loader)
 cat(format_csv(DAT, na = ""))
-
-## Manually write to file, solely for testing purposes
-## fwrite(DAT, "../.observablehq/cache/data/RM15_water_temp.csv", na = "")

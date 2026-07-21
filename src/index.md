@@ -5,7 +5,7 @@ toc: false
 <link rel="stylesheet" href="./styles/App.css">
 
 ```js
-import {OVERRIDE_YEAR} from "./config.js";
+import {OVERRIDE_YEAR, RIVER_MILE} from "./config.js";
 
 // Palette entries are paired with years oldest→newest (index 0 = 4 years
 // back, last index = currentYear). All years now render as solid lines —
@@ -156,7 +156,7 @@ display(htl.html`<div class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
     <div class="hero-left">
-      <p class="hero-eyebrow">Colorado River Mile 15</p>
+      <p class="hero-eyebrow">Colorado River Mile ${RIVER_MILE}</p>
       <h1 class="hero-title">Smallmouth Bass Spawning Threshold and Daily Water Temperature</h1>
       <p class="hero-sub"></p>
     </div>
@@ -568,7 +568,7 @@ exportBtn.onclick = async () => {
 
     const headerTopSvg = `
       <image href="${logoInfo.dataUri}" x="${padX}" y="24" width="${logoWidth}" height="${logoHeight}" preserveAspectRatio="xMinYMin meet"/>
-      <text x="${titleX}" y="40" font-family="Source Sans 3, sans-serif" font-size="13" letter-spacing="2" fill="#705C57">${escapeXml("COLORADO RIVER MILE 10")}</text>
+      <text x="${titleX}" y="40" font-family="Source Sans 3, sans-serif" font-size="13" letter-spacing="2" fill="#705C57">${escapeXml(`COLORADO RIVER MILE ${RIVER_MILE}`)}</text>
       <text x="${titleX}" y="64" font-family="PT Serif, Georgia, serif" font-size="21" fill="#251F21">${escapeXml(titleLine1)}</text>
       <text x="${titleX}" y="88" font-family="PT Serif, Georgia, serif" font-size="21" fill="#251F21">${escapeXml(titleLine2)}</text>
       <text x="${heroRightX}" y="50" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="32" font-weight="500" fill="#B03823">${escapeXml(currentTempStr)}</text>
@@ -666,7 +666,7 @@ exportBtn.onclick = async () => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     const todayStr = new Date().toISOString().slice(0, 10);
-    a.download = `mile-10-temp-${(focusYear ?? "none").toLowerCase()}-${todayStr}.svg`;
+    a.download = `mile-${RIVER_MILE}-temp-${(focusYear ?? "none").toLowerCase()}-${todayStr}.svg`;
     a.click();
   } finally {
     exportBtn.textContent = originalLabel;

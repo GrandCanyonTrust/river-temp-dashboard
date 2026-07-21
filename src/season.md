@@ -6,7 +6,7 @@ toc: false
 <link rel="stylesheet" href="./styles/App.css">
 
 ```js
-import {OVERRIDE_YEAR} from "./config.js";
+import {OVERRIDE_YEAR, RIVER_MILE} from "./config.js";
 ```
 
 ```js
@@ -117,7 +117,7 @@ display(htl.html`<header class="site-header">
 ```js
 display(htl.html`<div class="hero">
   <div class="hero-bg"></div>
-  <p class="hero-eyebrow">Colorado River Mile 15</p>
+  <p class="hero-eyebrow">Colorado River Mile ${RIVER_MILE}</p>
   <h1 class="hero-title">${currentYear} Season Detail</h1>
   <p class="hero-sub">Current season trend and daily water temperature readings.</p>
 </div>`);
