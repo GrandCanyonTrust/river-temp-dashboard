@@ -167,7 +167,7 @@ f <- function(date = "2024-01-10",
   
   ## Use formula in "forward" direction to compute temp RM miles
   ## downstream -- at the river mile configured in config.js.
-  RM <- river_mile
+  RM <- river_mile + 15   # convert Lees-Ferry-based mile to dam-based distance  
   Te + (T0 - Te)*(exp(e_mult * RM)) |>
     round(4)
 }
