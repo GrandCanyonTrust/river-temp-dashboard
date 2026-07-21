@@ -200,10 +200,10 @@ display(htl.html`<div class="section-card">
 
 const chartCurrent = resize((width) => Plot.plot({
   width,
-  height: 460,
+  height: 500,
   marginLeft: 50,
-  marginBottom: 40,
-  marginTop: 20,
+  marginBottom: 45,
+  marginTop: 25,
   style: {
     fontFamily: "IBM Plex Mono, monospace",
     fontSize: "16px",
