@@ -156,9 +156,9 @@ display(htl.html`<div class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
     <div class="hero-left">
-      <p class="hero-eyebrow">Colorado River Mile ${RIVER_MILE}</p>
-      <h1 class="hero-title">Smallmouth Bass Spawning Threshold and Daily Water Temperature</h1>
-      <p class="hero-sub"></p>
+      <p class="hero-eyebrow">Colorado River Mile ${RIVER_MILE} · Grand Canyon National Park</p>
+      <h1 class="hero-title">Daily Water Temperature</h1>
+      <p class="hero-sub">Smallmouth Bass Spawning Threshold</p>
     </div>
     <div class="hero-right">
       <div class="hero-temp">${currentTemp?.toFixed(1)}<span class="hero-temp-unit">°F</span></div>
@@ -559,8 +559,12 @@ exportBtn.onclick = async () => {
     const logoWidth = logoInfo.width && logoInfo.height ? (logoInfo.width / logoInfo.height) * logoHeight : logoHeight;
 
     // ── Header: logo, title, current reading ─────────────────
-    const titleLine1 = "Smallmouth Bass Spawning Threshold";
-    const titleLine2 = "and Daily Water Temperature";
+    // Same hierarchy as the on-page hero: the location/park line reads
+    // first, "Daily Water Temperature" is the prominent headline, and
+    // "Smallmouth Bass Spawning Threshold" is demoted to a small italic
+    // subtitle beneath it.
+    const titleLine1 = "Daily Water Temperature";
+    const titleLine2 = "Smallmouth Bass Spawning Threshold";
     const titleX = padX + logoWidth + 24;
     const heroRightX = chartWidth - padX;
     const currentTempStr = currentTemp !== undefined ? `${currentTemp.toFixed(1)}°F` : "—";
@@ -568,9 +572,9 @@ exportBtn.onclick = async () => {
 
     const headerTopSvg = `
       <image href="${logoInfo.dataUri}" x="${padX}" y="24" width="${logoWidth}" height="${logoHeight}" preserveAspectRatio="xMinYMin meet"/>
-      <text x="${titleX}" y="40" font-family="Source Sans 3, sans-serif" font-size="13" letter-spacing="2" fill="#705C57">${escapeXml(`COLORADO RIVER MILE ${RIVER_MILE}`)}</text>
-      <text x="${titleX}" y="64" font-family="PT Serif, Georgia, serif" font-size="21" fill="#251F21">${escapeXml(titleLine1)}</text>
-      <text x="${titleX}" y="88" font-family="PT Serif, Georgia, serif" font-size="21" fill="#251F21">${escapeXml(titleLine2)}</text>
+      <text x="${titleX}" y="40" font-family="Source Sans 3, sans-serif" font-size="13" letter-spacing="2" fill="#705C57">${escapeXml(`COLORADO RIVER MILE ${RIVER_MILE} · GRAND CANYON NATIONAL PARK`)}</text>
+      <text x="${titleX}" y="66" font-family="PT Serif, Georgia, serif" font-size="24" font-weight="600" fill="#251F21">${escapeXml(titleLine1)}</text>
+      <text x="${titleX}" y="86" font-family="PT Serif, Georgia, serif" font-size="14" font-style="italic" fill="#705C57">${escapeXml(titleLine2)}</text>
       <text x="${heroRightX}" y="50" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="32" font-weight="500" fill="#B03823">${escapeXml(currentTempStr)}</text>
       <text x="${heroRightX}" y="70" text-anchor="end" font-family="Source Sans 3, sans-serif" font-size="14" letter-spacing="1" fill="#B03823">${escapeXml(statusLabel.toUpperCase())}</text>
       <text x="${heroRightX}" y="88" text-anchor="end" font-family="Source Sans 3, sans-serif" font-size="13" fill="#251F21">${escapeXml(heroDateStr)}</text>
