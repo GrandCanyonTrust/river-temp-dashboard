@@ -5,22 +5,19 @@ toc: false
 <link rel="stylesheet" href="./styles/App.css">
 
 ```js
-// ── Season configuration ─────────────────────────────────────────
-// Change ONLY this value to move the whole page to a new season.
-// (The chart highlights this year plus the 4 years before it, using
-// the color/dash palette below. Add a 6th palette entry if you ever
-// want to show more than 5 highlighted years at once.)
-const currentYear = 2026;
+import {OVERRIDE_YEAR} from "./config.js";
 
 // Palette entries are paired with years oldest→newest (index 0 = 4 years
 // back, last index = currentYear). All years now render as solid lines —
-// colors alone distinguish them.
+// colors alone distinguish them. currentYear itself is computed below,
+// once the data has loaded (see the "currentYear" cell) — it no longer
+// needs to be set by hand here.
 const yearPalette = [
-  {color: "#eda100", dash: []},     // 2022
-  {color: "#9085e9", dash: []},     // 2023
-  {color: "#3987e5", dash: []},     // 2024
-  {color: "#1baf7a", dash: []},     // 2025
-  {color: "#e34948", dash: []},     // 2026
+  {color: "#eda100", dash: []},     // oldest highlighted year
+  {color: "#9085e9", dash: []},
+  {color: "#3987e5", dash: []},
+  {color: "#1baf7a", dash: []},
+  {color: "#e34948", dash: []},     // currentYear
 ];
 ```
 
@@ -36,6 +33,18 @@ const parsed = d3.csvParse(raw, d => ({
   tmp: d.tmp === "" ? null : toF(+d.tmp),
   cfs: d.cfs === "" ? null : +d.cfs
 }));
+```
+
+```js
+// ── Season detection ───────────────────────────────────────────────
+// currentYear is auto-detected as the newest year present in the data
+// (falling back to OVERRIDE_YEAR from config.js if it's set). This is
+// the ONLY thing that needs to change to move the whole page to a new
+// season, and in normal operation it changes itself.
+const yearsInData = Array.from(new Set(
+  parsed.filter(d => d.date !== null).map(d => d.date.getFullYear())
+));
+const currentYear = OVERRIDE_YEAR ?? d3.max(yearsInData);
 ```
 
 ```js
@@ -136,7 +145,7 @@ display(htl.html`
   <img src="${logo}" alt="Grand Canyon Trust" class="site-logo">
   <nav class="site-nav">
     <a href="./">Overview</a>
-    <a href="./${currentYear}">${currentYear} Season</a>
+    <a href="./season">${currentYear} Season</a>
   </nav>
 </header>
 `);

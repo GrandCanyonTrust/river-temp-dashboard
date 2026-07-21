@@ -1,17 +1,12 @@
 ---
-title: 2026 Season
+title: Season Detail
 toc: false
 ---
 
 <link rel="stylesheet" href="./styles/App.css">
 
 ```js
-// ── Season configuration ─────────────────────────────────────────
-// Change ONLY this value to move the whole page to a new season.
-// (Note: the front-matter `title:` above and this page's filename are
-// plain YAML/routing, not JS, so they can't read this variable)
-const currentYear = 2026;
-const priorYear = currentYear - 1;
+import {OVERRIDE_YEAR} from "./config.js";
 ```
 
 ```js
@@ -26,6 +21,20 @@ const parsed = d3.csvParse(raw, d => ({
   tmp: d.tmp === "" ? null : toF(+d.tmp),
   cfs: d.cfs === "" ? null : +d.cfs
 }));
+```
+
+```js
+// ── Season detection ───────────────────────────────────────────────
+// currentYear is auto-detected as the newest year present in the data
+// (falling back to OVERRIDE_YEAR from config.js if it's set), and
+// priorYear always follows one year behind it. This page's filename
+// and title are stable ("season.md" / "Season Detail"), so there is
+// nothing else to rename or edit here when the season changes.
+const yearsInData = Array.from(new Set(
+  parsed.filter(d => d.date !== null).map(d => d.date.getFullYear())
+));
+const currentYear = OVERRIDE_YEAR ?? d3.max(yearsInData);
+const priorYear = currentYear - 1;
 ```
 
 ```js
@@ -100,7 +109,7 @@ display(htl.html`<header class="site-header">
   <img src="${logo}" alt="Grand Canyon Trust" class="site-logo">
   <nav class="site-nav">
     <a href="./">Overview</a>
-    <a href="./${currentYear}" aria-current="page">${currentYear} Season</a>
+    <a href="./season" aria-current="page">${currentYear} Season</a>
   </nav>
 </header>`);
 ```
@@ -110,7 +119,7 @@ display(htl.html`<div class="hero">
   <div class="hero-bg"></div>
   <p class="hero-eyebrow">Colorado River Mile 10</p>
   <h1 class="hero-title">${currentYear} Season Detail</h1>
-  <p class="hero-sub">Daily water temperature readings and recent trend for the current season</p>
+  <p class="hero-sub">Current season trend and daily water temperature readings.</p>
 </div>`);
 ```
 
@@ -118,24 +127,24 @@ display(htl.html`<div class="hero">
 display(htl.html`<p class="last-updated">Data through ${latest?.date.toLocaleDateString("en-US", {year: "numeric", month: "long", day: "numeric"})} · USGS, preliminary</p>`);
 ```
 
-<div class="stat-row">
+<div class="stat-row season-stats">
   <div class="stat-card stat-card--temp">
-    <div class="stat-label">Current temperature</div>
+    <div class="stat-label">Current Temperature</div>
     <div class="stat-value" style=${{color: statusColor}}>${latest?.tmp.toFixed(1)}°F</div>
     <div class="stat-sub" style=${{color: statusColor}}>${status === "above" ? "Above threshold" : status === "approaching" ? "Approaching threshold" : "Below threshold"}</div>
   </div>
   <div class="stat-card stat-card--peak">
-    <div class="stat-label">Peak this season</div>
+    <div class="stat-label">Peak This Season</div>
     <div class="stat-value">${seasonHigh?.toFixed(1)}°F</div>
     <div class="stat-sub">${seasonHighDate ? `Reached ${seasonHighDate.toLocaleDateString("en-US", {month: "short", day: "numeric"})}` : "—"}</div>
   </div>
   <div class="stat-card stat-card--days">
-    <div class="stat-label">Days above threshold</div>
+    <div class="stat-label">Days Above Threshold</div>
     <div class="stat-value">${daysAbove}</div>
     <div class="stat-sub">at or above ${threshold.toFixed(1)}°F</div>
   </div>
   <div class="stat-card stat-card--trend">
-    <div class="stat-label">Warming trend</div>
+    <div class="stat-label">Warming Trend</div>
     <div class="stat-value" style=${{color: trendColor}}>${trendArrow} ${trendDelta !== null ? Math.abs(trendDelta).toFixed(2) : "—"}°F</div>
     <div class="stat-sub">${trendDirection === "rising" ? "Warming vs. prior week" : trendDirection === "falling" ? "Cooling vs. prior week" : "Holding steady"}</div>
   </div>
@@ -179,8 +188,7 @@ const dataCurrentRuns = (() => {
 // ── Section 1: Current-year Temperature ──────────────────────────
 display(htl.html`<div class="section-card">
   <div class="section-card-header">
-    <h2 class="section-card-title">${currentYear} Temperature</h2>
-    <p class="section-card-sub">Full season, daily readings</p>
+    <h2 class="section-card-title">${currentYear} Daily Temperature Readings</h2>
   </div>
   <div id="chartCurrent-wrap"></div>
   <div class="inline-legend">
@@ -192,7 +200,7 @@ display(htl.html`<div class="section-card">
 
 const chartCurrent = resize((width) => Plot.plot({
   width,
-  height: 400,
+  height: 460,
   marginLeft: 50,
   marginBottom: 40,
   marginTop: 20,
@@ -223,7 +231,7 @@ const chartCurrent = resize((width) => Plot.plot({
       x: "date", y: "tmp",
       z: "runId",
       stroke: d => d.above ? "#B03823" : "#537F1C",
-      strokeWidth: 2,
+      strokeWidth: 3,
     }),
     Plot.tip(dataCurrent, Plot.pointerX({
       x: "date", y: "tmp",
@@ -242,7 +250,7 @@ document.getElementById("chartCurrent-wrap")?.replaceWith(chartCurrent);
 ```js
 // ── Trend summary between charts ─────────────────────────────────
 const trendSummary = yoyDelta !== null
-  ? `Through today, ${currentYear} is tracking ${Math.abs(yoyDelta).toFixed(1)}°F ${yoyDelta > 0 ? "warmer" : "cooler"} than ${priorYear} at this same point in the season.`
+  ? `Compared to this time last year, ${currentYear} is ${Math.abs(yoyDelta).toFixed(1)}°F ${yoyDelta > 0 ? "warmer" : "cooler"}.`
   : "Year-over-year comparison not available for this date.";
 
 display(htl.html`<p class="trend-summary">${trendSummary}</p>`);
@@ -257,20 +265,46 @@ display(htl.html`<div class="section-card section-card--secondary">
   </div>
   <div id="yoy-chart-wrap"></div>
   <div class="inline-legend">
-    <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#537F1C" stroke-width="2.5"/></svg> ${currentYear}</span>
-    <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#C16B4E" stroke-width="2" stroke-dasharray="5,3"/></svg> ${priorYear}</span>
-    <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#B03823" stroke-width="1.5" stroke-dasharray="4,2"/></svg> Threshold</span>
+    <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#537F1C" stroke-width="2.5"/></svg> Below Threshold</span>
+    <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#B03823" stroke-width="2.5"/></svg> Above Threshold</span>
+    <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#8C7A76" stroke-width="2"/></svg> ${priorYear}</span>
+    <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#B03823" stroke-width="1.5" stroke-dasharray="4,2"/></svg> ${threshold.toFixed(1)}°F Threshold</span>
   </div>
 </div>`);
 
+// Same run-splitting approach as the current-year chart above, so the
+// ${currentYear} line here uses the same above/below-threshold coloring
+// instead of a single flat color.
+const dataPriorRuns = (() => {
+  const result = [];
+  let runId = 0;
+  dataCurrent.forEach((d, i) => {
+    const isAbove = d.tmp >= threshold;
+    if (i > 0) {
+      const prev = dataCurrent[i - 1];
+      const prevIsAbove = prev.tmp >= threshold;
+      if (isAbove !== prevIsAbove) {
+        const t = (threshold - prev.tmp) / (d.tmp - prev.tmp);
+        const crossDate = new Date(prev.date.getTime() + t * (d.date.getTime() - prev.date.getTime()));
+        result.push({ date: crossDate, tmp: threshold, runId, above: prevIsAbove });
+        runId++;
+        result.push({ date: crossDate, tmp: threshold, runId, above: isAbove });
+      }
+    }
+    result.push({ ...d, runId, above: isAbove });
+  });
+  return result;
+})();
+
 const yoyChart = resize((width) => Plot.plot({
   width,
-  height: 200,
+  height: 320,
   marginLeft: 50,
-  marginBottom: 30,
-  marginTop: 10,
+  marginBottom: 40,
+  marginTop: 20,
   style: {
     fontFamily: "IBM Plex Mono, monospace",
+    fontSize: "16px",
     background: "#ffffff",
   },
   x: {
@@ -285,16 +319,22 @@ const yoyChart = resize((width) => Plot.plot({
   },
   y: { label: "Water temperature (°F)", domain: [toF(7), toF(22)] },
   marks: [
+    Plot.rectY([{}], {
+      x1: 0, x2: 365, y1: threshold, y2: toF(22),
+      fill: "#B03823", fillOpacity: 0.07,
+    }),
     Plot.ruleY([threshold], {
       stroke: "#B03823", strokeDasharray: "4 2", strokeWidth: 1.2,
     }),
     Plot.line(dataPriorToDate, {
       x: d => doyOf(d.date), y: "tmp",
-      stroke: "#C16B4E", strokeWidth: 1.5, strokeDasharray: "5 3",
+      stroke: "#8C7A76", strokeWidth: 2,
     }),
-    Plot.line(dataCurrent, {
+    Plot.line(dataPriorRuns, {
       x: d => doyOf(d.date), y: "tmp",
-      stroke: "#537F1C", strokeWidth: 2,
+      z: "runId",
+      stroke: d => d.above ? "#B03823" : "#537F1C",
+      strokeWidth: 3,
     }),
     Plot.tip(dataCurrent, Plot.pointerX({
       x: d => doyOf(d.date), y: "tmp",
@@ -302,7 +342,7 @@ const yoyChart = resize((width) => Plot.plot({
     })),
     Plot.dot(dataCurrent.slice(-1), {
       x: d => doyOf(d.date), y: "tmp",
-      r: 4, fill: "#2C0E09", stroke: "#ffffff", strokeWidth: 1,
+      r: 5, fill: "#2C0E09", stroke: "#ffffff", strokeWidth: 1,
     }),
   ],
 }));
