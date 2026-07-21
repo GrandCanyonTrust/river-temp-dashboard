@@ -27,7 +27,7 @@ const toF = c => c * 9 / 5 + 32;
 ```
 
 ```js
-const raw = await FileAttachment("./data/RM10_water_temp.csv").text();
+const raw = await FileAttachment("./data/RM15_water_temp.csv").text();
 const parsed = d3.csvParse(raw, d => ({
   date: d3.timeParse("%Y-%m-%d")(d.date),
   tmp: d.tmp === "" ? null : toF(+d.tmp),
@@ -156,7 +156,7 @@ display(htl.html`<div class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
     <div class="hero-left">
-      <p class="hero-eyebrow">Colorado River Mile 10</p>
+      <p class="hero-eyebrow">Colorado River Mile 15</p>
       <h1 class="hero-title">Smallmouth Bass Spawning Threshold and Daily Water Temperature</h1>
       <p class="hero-sub"></p>
     </div>

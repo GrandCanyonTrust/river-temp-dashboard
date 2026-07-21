@@ -125,7 +125,7 @@ f <- function(date = "2024-01-10",
     T0 <- ((T0_LF - Te)/(exp(e_mult * RM))) + Te
 
     ## Use formula in "forward" direction to compute temp RM miles downstream
-    RM <- 25
+    RM <- 30
     Te + (T0 - Te)*(exp(e_mult * RM)) |>
         round(4)
 }
