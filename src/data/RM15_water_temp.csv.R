@@ -54,7 +54,7 @@ USGS_gage_daily_parameters <-
 ## second hardcoded copy living here.
 ##
 ## NOTE: the loader's own filename ("RM15_water_temp.csv") is fixed for
-## now and does NOT necessarily match RIVER_MILE below 
+## now and does NOT necessarily match RIVER_MILE below
 read_river_mile <- function(path_candidates = c("../config.js",
                                                 "./config.js",
                                                 "./src/config.js",
@@ -140,23 +140,23 @@ f <- function(date = "2024-01-10",
   month <- month(as.Date(date))
   Ta <- Ta[month]
   GHI <- GHI[month]
-  
+
   ## Convert ft^3/s to m^3/s, following pattern in spreadsheet model formulae
   Q <- Q/(3.281^3)
-  
+
   ## Center and scale, using values in spreadsheet model formulae
   Ta <- (Ta - 15.20539) / 10
   GHI <- (GHI - 225.339848) / 100
-  
+
   ## T_e from Equation S3 (page 14)
   Te <- beta0 + (betaA * Ta) + (betaS * GHI)
-  
+
   ## Term multiplying RM in exponential decay portion of the formula.
   ##
   ## NOTE: this equation (with "-b" rather than "b" in the exponent) is
   ## correct, not the equation recorded on p. 3 of Dibble 2020's Appendix S2.
   e_mult <- -(k*(Q^-b))
-  
+
   ## Use formula "in reverse" to compute Glen Canyon outlet water temp from
   ## measured temperature at Lees Ferry, 15 miles downstream. This "15" is
   ## the fixed physical distance from the dam to the Lees Ferry gage --
@@ -164,10 +164,10 @@ f <- function(date = "2024-01-10",
   ## regardless of what RIVER_MILE/river_mile is set to.
   RM <- 15
   T0 <- ((T0_LF - Te)/(exp(e_mult * RM))) + Te
-  
+
   ## Use formula in "forward" direction to compute temp RM miles
   ## downstream -- at the river mile configured in config.js.
-  RM <- river_mile + 15   # convert Lees-Ferry-based mile to dam-based distance  
+  RM <- river_mile + 15   # convert Lees-Ferry-based mile to dam-based distance
   Te + (T0 - Te)*(exp(e_mult * RM)) |>
     round(4)
 }
@@ -177,3 +177,6 @@ DAT[, tmp := f(date, tmp, cfs)]
 
 ## Write results to stdout (as required for an Observable Framework data loader)
 cat(format_csv(DAT, na = ""))
+
+## Manually write to file, solely for testing purposes
+## fwrite(DAT, "../.observablehq/cache/data/RM15_water_temp.csv", na = "")

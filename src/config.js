@@ -12,11 +12,6 @@
 //
 // NOTE: this is a *display* value for index.md/season.md. The actual
 // river mile baked into the computed water temperatures themselves is
-// set in the RM15_water_temp data loader (its filename is fixed and no
-// longer matches the number below — see the loader's section (0b)).
-// The loader reads RIVER_MILE from this same file, so changing it here
-// changes both — just remember to re-run/re-build the data loader after
-// editing this so the numbers displayed and the numbers computed stay
-// in sync.
+// set in the RM15_water_temp data loader
 export const OVERRIDE_YEAR = null;
 export const RIVER_MILE = 15;
