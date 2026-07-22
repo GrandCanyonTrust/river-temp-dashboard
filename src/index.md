@@ -489,10 +489,14 @@ display(legendEl);
 ```
 
 ```js
-// ── SVG export ──────────────────────────────────────────────────
-// Builds a standalone SVG: logo + hero + stat cards header, then the
-// chart, then a legend laid out with a measured-width flow (so labels
+// ── SVG / JPEG export ────────────────────────────────────────────
+// Builds a standalone SVG string: logo + hero + stat cards header, then
+// the chart, then a legend laid out with a measured-width flow (so labels
 // of different lengths never overlap), then the usage credit line.
+//
+// This is shared by both export buttons below: the SVG button downloads
+// the string directly, and the JPEG button rasterizes the same string
+// onto a canvas before downloading it as a JPEG.
 
 function escapeXml(str) {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -537,147 +541,221 @@ async function loadLogoForExport() {
   return { dataUri, ...dims };
 }
 
-const exportBtn = htl.html`<button class="export-btn">↓ Download chart as SVG</button>`;
-
-exportBtn.onclick = async () => {
+// Builds the full export SVG and returns both the markup string and its
+// pixel dimensions (the JPEG exporter needs the dimensions to size its
+// canvas correctly).
+async function buildExportSvg() {
   const chartSvg = chartPlot.querySelector("svg");
-  if (!chartSvg) return;
+  if (!chartSvg) return null;
 
-  const originalLabel = exportBtn.textContent;
-  exportBtn.textContent = "Preparing…";
-  exportBtn.disabled = true;
+  const chartClone = chartSvg.cloneNode(true);
+  const chartWidth = chartClone.viewBox.baseVal.width || chartClone.getBoundingClientRect().width;
+  const chartHeight = chartClone.viewBox.baseVal.height || chartClone.getBoundingClientRect().height;
+  const padX = 24;
+
+  // ── Logo ──────────────────────────────────────────────────
+  const logoInfo = await loadLogoForExport();
+  const logoHeight = 50;
+  const logoWidth = logoInfo.width && logoInfo.height ? (logoInfo.width / logoInfo.height) * logoHeight : logoHeight;
+
+  // ── Header: logo, title, current reading ─────────────────
+  // Same hierarchy as the on-page hero: the location/park line reads
+  // first, "Daily Water Temperature" is the prominent headline, and
+  // "Smallmouth Bass Spawning Threshold" is demoted to a small italic
+  // subtitle beneath it.
+  const titleLine1 = "Daily Water Temperature";
+  const titleLine2 = "Smallmouth Bass Spawning Threshold";
+  const titleX = padX + logoWidth + 24;
+  const heroRightX = chartWidth - padX;
+  const currentTempStr = currentTemp !== undefined ? `${currentTemp.toFixed(1)}°F` : "—";
+  const heroDateStr = latest?.date ? latest.date.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+
+  const headerTopSvg = `
+    <image href="${logoInfo.dataUri}" x="${padX}" y="24" width="${logoWidth}" height="${logoHeight}" preserveAspectRatio="xMinYMin meet"/>
+    <text x="${titleX}" y="40" font-family="Source Sans 3, sans-serif" font-size="13" letter-spacing="2" fill="#705C57">${escapeXml(`COLORADO RIVER MILE ${RIVER_MILE} · GRAND CANYON NATIONAL PARK`)}</text>
+    <text x="${titleX}" y="66" font-family="PT Serif, Georgia, serif" font-size="24" font-weight="600" fill="#251F21">${escapeXml(titleLine1)}</text>
+    <text x="${titleX}" y="86" font-family="PT Serif, Georgia, serif" font-size="14" font-style="italic" fill="#705C57">${escapeXml(titleLine2)}</text>
+    <text x="${heroRightX}" y="50" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="32" font-weight="500" fill="#B03823">${escapeXml(currentTempStr)}</text>
+    <text x="${heroRightX}" y="70" text-anchor="end" font-family="Source Sans 3, sans-serif" font-size="14" letter-spacing="1" fill="#B03823">${escapeXml(statusLabel.toUpperCase())}</text>
+    <text x="${heroRightX}" y="88" text-anchor="end" font-family="Source Sans 3, sans-serif" font-size="13" fill="#251F21">${escapeXml(heroDateStr)}</text>
+  `;
+
+  const ruleY = 110;
+
+  // ── Stat row ──────────────────────────────────────────────
+  const statEntries = [
+    { label: "LAST READING DATE", value: lastUpdatedStr, sub: "Most Recent USGS Reading" },
+    { label: "7-DAY TREND", value: `${trendArrow} ${trendDelta !== null ? Math.abs(trendDelta).toFixed(2) : "—"}°F`, valueColor: trendColor, sub: trendSub },
+    { label: "DAYS ABOVE THRESHOLD", value: String(daysAbove), sub: daysAboveSub },
+    { label: "COOL MIX THRESHOLD", value: `${threshold.toFixed(1)}°F`, sub: "Triggers Dam Release with Cool Mix Flows" },
+  ];
+  const statTop = ruleY + 24;
+  const colWidth = (chartWidth - padX * 2) / statEntries.length;
+  const statSvg = statEntries.map((s, i) => {
+    const x = padX + i * colWidth;
+    return `
+      <text x="${x}" y="${statTop + 14}" font-family="PT Serif, Georgia, serif" font-size="11" letter-spacing="1.5" fill="#251F21">${escapeXml(s.label)}</text>
+      <text x="${x}" y="${statTop + 38}" font-family="IBM Plex Mono, monospace" font-size="20" font-weight="500" fill="${s.valueColor ?? "#2C0E09"}">${escapeXml(s.value)}</text>
+      <text x="${x}" y="${statTop + 56}" font-family="Source Sans 3, sans-serif" font-size="12" fill="#000000">${escapeXml(s.sub)}</text>
+    `;
+  }).join("");
+  const statBottom = statTop + 66;
+  const headerHeight = statBottom + 20;
+
+  // ── Legend: measured-width flow layout, wraps to new row ───
+  // instead of using a fixed column width, so labels of differing
+  // lengths ("2026" vs "10th–90th percentile") never collide.
+  const visibleYearEntries = focusYear
+    ? Object.entries(yearColors)
+        .sort((a, b) => b[0] - a[0])
+        .filter(([year]) => focusYear === "All" || String(year) === focusYear)
+        .map(([year, cfg]) => ({
+          label: String(year), color: cfg.color, dash: cfg.dash.length ? cfg.dash.join(",") : "none", type: "line",
+        }))
+    : [];
+
+  const legendEntries = [
+    ...visibleYearEntries,
+    ...(showHistorical ? [{ label: "Historical", color: "#705C57", dash: "none", type: "line" }] : []),
+    ...(showMedian ? [{ label: "Median", color: "#57423E", dash: "6,3", type: "line" }] : []),
+    ...(showBand ? [{ label: "10th–90th Percentile", color: "#93A87B", type: "band" }] : []),
+    { label: `${threshold.toFixed(1)}°F Threshold`, color: "#B03823", dash: "4,2", type: "line" },
+  ];
+
+  const legendFontSize = 14;
+  const markWidth = 28;
+  const markGap = 8;
+  const itemGap = 28;
+  let cursorX = 0, cursorRow = 0;
+  const legendPositioned = legendEntries.map(entry => {
+    const itemWidth = markWidth + markGap + estimateTextWidth(entry.label, legendFontSize);
+    if (cursorX > 0 && cursorX + itemWidth > chartWidth) {
+      cursorX = 0;
+      cursorRow += 1;
+    }
+    const placed = { ...entry, x: cursorX, y: cursorRow * 26 + 16 };
+    cursorX += itemWidth + itemGap;
+    return placed;
+  });
+  const legendHeight = (cursorRow + 1) * 26 + 16;
+
+  const legendItemsSvg = legendPositioned.map(entry => {
+    const mark = entry.type === "band"
+      ? `<rect x="${entry.x}" y="${entry.y - 4}" width="${markWidth}" height="8" fill="${entry.color}" opacity="0.4" rx="2"/>`
+      : `<line x1="${entry.x}" y1="${entry.y}" x2="${entry.x + markWidth}" y2="${entry.y}" stroke="${entry.color}" stroke-width="2.5" stroke-dasharray="${entry.dash}"/>`;
+    return `${mark}<text x="${entry.x + markWidth + markGap}" y="${entry.y + 4}" font-family="Source Sans 3, sans-serif" font-size="${legendFontSize}" fill="#8C7A76">${escapeXml(entry.label)}</text>`;
+  }).join("");
+
+  // ── Credit line ─────────────────────────────────────────────
+  const creditText = "Graphs may be used for non-commercial purposes provided that they are not altered or edited and they are appropriately credited to the Grand Canyon Trust.";
+  const creditLines = wrapTextToLines(creditText, chartWidth - padX * 2, 12);
+  const creditSvg = creditLines.map((line, i) =>
+    `<text x="${padX}" y="${20 + i * 16}" font-family="PT Serif, Georgia, serif" font-style="italic" font-size="12" fill="#AC9E9B">${escapeXml(line)}</text>`
+  ).join("");
+  const creditHeight = creditLines.length * 16 + 16;
+
+  const totalHeight = headerHeight + chartHeight + legendHeight + creditHeight;
+
+  // JPEG has no transparency, so the export SVG always carries an explicit
+  // white background rect (it already does, below) — no change needed for
+  // that reason, but it's what lets the canvas rasterization look right.
+  const combined = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${chartWidth}" height="${totalHeight}" viewBox="0 0 ${chartWidth} ${totalHeight}">
+    <rect width="${chartWidth}" height="${totalHeight}" fill="#ffffff"/>
+    <g>${headerTopSvg}</g>
+    <line x1="${padX}" y1="${ruleY}" x2="${chartWidth - padX}" y2="${ruleY}" stroke="#E1B9A6" stroke-width="1"/>
+    <g>${statSvg}</g>
+    <g transform="translate(0, ${headerHeight})">${chartClone.innerHTML}</g>
+    <g transform="translate(8, ${headerHeight + chartHeight + 8})">${legendItemsSvg}</g>
+    <g transform="translate(0, ${headerHeight + chartHeight + legendHeight})">${creditSvg}</g>
+  </svg>`;
+
+  return { svgString: combined, width: chartWidth, height: totalHeight };
+}
+
+function exportFilenameBase() {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  return `mile-${RIVER_MILE}-temp-${(focusYear ?? "none").toLowerCase()}-${todayStr}`;
+}
+
+// ── SVG download button ──────────────────────────────────────────
+const exportSvgBtn = htl.html`<button class="export-btn">↓ Download chart as SVG</button>`;
+
+exportSvgBtn.onclick = async () => {
+  const originalLabel = exportSvgBtn.textContent;
+  exportSvgBtn.textContent = "Preparing…";
+  exportSvgBtn.disabled = true;
 
   try {
-    const chartClone = chartSvg.cloneNode(true);
-    const chartWidth = chartClone.viewBox.baseVal.width || chartClone.getBoundingClientRect().width;
-    const chartHeight = chartClone.viewBox.baseVal.height || chartClone.getBoundingClientRect().height;
-    const padX = 24;
+    const built = await buildExportSvg();
+    if (!built) return;
 
-    // ── Logo ──────────────────────────────────────────────────
-    const logoInfo = await loadLogoForExport();
-    const logoHeight = 50;
-    const logoWidth = logoInfo.width && logoInfo.height ? (logoInfo.width / logoInfo.height) * logoHeight : logoHeight;
-
-    // ── Header: logo, title, current reading ─────────────────
-    // Same hierarchy as the on-page hero: the location/park line reads
-    // first, "Daily Water Temperature" is the prominent headline, and
-    // "Smallmouth Bass Spawning Threshold" is demoted to a small italic
-    // subtitle beneath it.
-    const titleLine1 = "Daily Water Temperature";
-    const titleLine2 = "Smallmouth Bass Spawning Threshold";
-    const titleX = padX + logoWidth + 24;
-    const heroRightX = chartWidth - padX;
-    const currentTempStr = currentTemp !== undefined ? `${currentTemp.toFixed(1)}°F` : "—";
-    const heroDateStr = latest?.date ? latest.date.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
-
-    const headerTopSvg = `
-      <image href="${logoInfo.dataUri}" x="${padX}" y="24" width="${logoWidth}" height="${logoHeight}" preserveAspectRatio="xMinYMin meet"/>
-      <text x="${titleX}" y="40" font-family="Source Sans 3, sans-serif" font-size="13" letter-spacing="2" fill="#705C57">${escapeXml(`COLORADO RIVER MILE ${RIVER_MILE} · GRAND CANYON NATIONAL PARK`)}</text>
-      <text x="${titleX}" y="66" font-family="PT Serif, Georgia, serif" font-size="24" font-weight="600" fill="#251F21">${escapeXml(titleLine1)}</text>
-      <text x="${titleX}" y="86" font-family="PT Serif, Georgia, serif" font-size="14" font-style="italic" fill="#705C57">${escapeXml(titleLine2)}</text>
-      <text x="${heroRightX}" y="50" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="32" font-weight="500" fill="#B03823">${escapeXml(currentTempStr)}</text>
-      <text x="${heroRightX}" y="70" text-anchor="end" font-family="Source Sans 3, sans-serif" font-size="14" letter-spacing="1" fill="#B03823">${escapeXml(statusLabel.toUpperCase())}</text>
-      <text x="${heroRightX}" y="88" text-anchor="end" font-family="Source Sans 3, sans-serif" font-size="13" fill="#251F21">${escapeXml(heroDateStr)}</text>
-    `;
-
-    const ruleY = 110;
-
-    // ── Stat row ──────────────────────────────────────────────
-    const statEntries = [
-      { label: "LAST READING DATE", value: lastUpdatedStr, sub: "Most Recent USGS Reading" },
-      { label: "7-DAY TREND", value: `${trendArrow} ${trendDelta !== null ? Math.abs(trendDelta).toFixed(2) : "—"}°F`, valueColor: trendColor, sub: trendSub },
-      { label: "DAYS ABOVE THRESHOLD", value: String(daysAbove), sub: daysAboveSub },
-      { label: "COOL MIX THRESHOLD", value: `${threshold.toFixed(1)}°F`, sub: "Triggers Dam Release with Cool Mix Flows" },
-    ];
-    const statTop = ruleY + 24;
-    const colWidth = (chartWidth - padX * 2) / statEntries.length;
-    const statSvg = statEntries.map((s, i) => {
-      const x = padX + i * colWidth;
-      return `
-        <text x="${x}" y="${statTop + 14}" font-family="PT Serif, Georgia, serif" font-size="11" letter-spacing="1.5" fill="#251F21">${escapeXml(s.label)}</text>
-        <text x="${x}" y="${statTop + 38}" font-family="IBM Plex Mono, monospace" font-size="20" font-weight="500" fill="${s.valueColor ?? "#2C0E09"}">${escapeXml(s.value)}</text>
-        <text x="${x}" y="${statTop + 56}" font-family="Source Sans 3, sans-serif" font-size="12" fill="#000000">${escapeXml(s.sub)}</text>
-      `;
-    }).join("");
-    const statBottom = statTop + 66;
-    const headerHeight = statBottom + 20;
-
-    // ── Legend: measured-width flow layout, wraps to new row ───
-    // instead of using a fixed column width, so labels of differing
-    // lengths ("2026" vs "10th–90th percentile") never collide.
-    const visibleYearEntries = focusYear
-      ? Object.entries(yearColors)
-          .sort((a, b) => b[0] - a[0])
-          .filter(([year]) => focusYear === "All" || String(year) === focusYear)
-          .map(([year, cfg]) => ({
-            label: String(year), color: cfg.color, dash: cfg.dash.length ? cfg.dash.join(",") : "none", type: "line",
-          }))
-      : [];
-
-    const legendEntries = [
-      ...visibleYearEntries,
-      ...(showHistorical ? [{ label: "Historical", color: "#705C57", dash: "none", type: "line" }] : []),
-      ...(showMedian ? [{ label: "Median", color: "#57423E", dash: "6,3", type: "line" }] : []),
-      ...(showBand ? [{ label: "10th–90th Percentile", color: "#93A87B", type: "band" }] : []),
-      { label: `${threshold.toFixed(1)}°F Threshold`, color: "#B03823", dash: "4,2", type: "line" },
-    ];
-
-    const legendFontSize = 14;
-    const markWidth = 28;
-    const markGap = 8;
-    const itemGap = 28;
-    let cursorX = 0, cursorRow = 0;
-    const legendPositioned = legendEntries.map(entry => {
-      const itemWidth = markWidth + markGap + estimateTextWidth(entry.label, legendFontSize);
-      if (cursorX > 0 && cursorX + itemWidth > chartWidth) {
-        cursorX = 0;
-        cursorRow += 1;
-      }
-      const placed = { ...entry, x: cursorX, y: cursorRow * 26 + 16 };
-      cursorX += itemWidth + itemGap;
-      return placed;
-    });
-    const legendHeight = (cursorRow + 1) * 26 + 16;
-
-    const legendItemsSvg = legendPositioned.map(entry => {
-      const mark = entry.type === "band"
-        ? `<rect x="${entry.x}" y="${entry.y - 4}" width="${markWidth}" height="8" fill="${entry.color}" opacity="0.4" rx="2"/>`
-        : `<line x1="${entry.x}" y1="${entry.y}" x2="${entry.x + markWidth}" y2="${entry.y}" stroke="${entry.color}" stroke-width="2.5" stroke-dasharray="${entry.dash}"/>`;
-      return `${mark}<text x="${entry.x + markWidth + markGap}" y="${entry.y + 4}" font-family="Source Sans 3, sans-serif" font-size="${legendFontSize}" fill="#8C7A76">${escapeXml(entry.label)}</text>`;
-    }).join("");
-
-    // ── Credit line ─────────────────────────────────────────────
-    const creditText = "Graphs may be used for non-commercial purposes provided that they are not altered or edited and they are appropriately credited to the Grand Canyon Trust.";
-    const creditLines = wrapTextToLines(creditText, chartWidth - padX * 2, 12);
-    const creditSvg = creditLines.map((line, i) =>
-      `<text x="${padX}" y="${20 + i * 16}" font-family="PT Serif, Georgia, serif" font-style="italic" font-size="12" fill="#AC9E9B">${escapeXml(line)}</text>`
-    ).join("");
-    const creditHeight = creditLines.length * 16 + 16;
-
-    const totalHeight = headerHeight + chartHeight + legendHeight + creditHeight;
-
-    const combined = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${chartWidth}" height="${totalHeight}" viewBox="0 0 ${chartWidth} ${totalHeight}">
-      <rect width="${chartWidth}" height="${totalHeight}" fill="#ffffff"/>
-      <g>${headerTopSvg}</g>
-      <line x1="${padX}" y1="${ruleY}" x2="${chartWidth - padX}" y2="${ruleY}" stroke="#E1B9A6" stroke-width="1"/>
-      <g>${statSvg}</g>
-      <g transform="translate(0, ${headerHeight})">${chartClone.innerHTML}</g>
-      <g transform="translate(8, ${headerHeight + chartHeight + 8})">${legendItemsSvg}</g>
-      <g transform="translate(0, ${headerHeight + chartHeight + legendHeight})">${creditSvg}</g>
-    </svg>`;
-
-    const blob = new Blob([combined], { type: "image/svg+xml" });
+    const blob = new Blob([built.svgString], { type: "image/svg+xml" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    const todayStr = new Date().toISOString().slice(0, 10);
-    a.download = `mile-${RIVER_MILE}-temp-${(focusYear ?? "none").toLowerCase()}-${todayStr}.svg`;
+    a.download = `${exportFilenameBase()}.svg`;
     a.click();
+    URL.revokeObjectURL(a.href);
   } finally {
-    exportBtn.textContent = originalLabel;
-    exportBtn.disabled = false;
+    exportSvgBtn.textContent = originalLabel;
+    exportSvgBtn.disabled = false;
   }
 };
-display(exportBtn);
+
+// ── JPEG download button ─────────────────────────────────────────
+// Reuses the exact same SVG the SVG button downloads, then rasterizes
+// it onto an off-screen canvas (at 2x scale for crisper output on
+// retina displays / printing) and exports that as a JPEG.
+const exportJpegBtn = htl.html`<button class="export-btn">↓ Download chart as JPEG</button>`;
+
+exportJpegBtn.onclick = async () => {
+  const originalLabel = exportJpegBtn.textContent;
+  exportJpegBtn.textContent = "Preparing…";
+  exportJpegBtn.disabled = true;
+
+  let svgUrl;
+  try {
+    const built = await buildExportSvg();
+    if (!built) return;
+
+    const scale = 2; // render at 2x so the JPEG stays crisp at full size
+    const svgBlob = new Blob([built.svgString], { type: "image/svg+xml;charset=utf-8" });
+    svgUrl = URL.createObjectURL(svgBlob);
+
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = svgUrl;
+    });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.ceil(built.width * scale);
+    canvas.height = Math.ceil(built.height * scale);
+    const ctx = canvas.getContext("2d");
+
+    // JPEG has no transparency channel, so flatten onto a white
+    // background before drawing the chart on top of it.
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(scale, scale);
+    ctx.drawImage(img, 0, 0, built.width, built.height);
+
+    const jpegBlob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.92));
+    if (!jpegBlob) throw new Error("Canvas failed to produce a JPEG blob");
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(jpegBlob);
+    a.download = `${exportFilenameBase()}.jpg`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } finally {
+    if (svgUrl) URL.revokeObjectURL(svgUrl);
+    exportJpegBtn.textContent = originalLabel;
+    exportJpegBtn.disabled = false;
+  }
+};
+
+display(htl.html`<div class="export-row">${exportSvgBtn}${exportJpegBtn}</div>`);
 ```
 
 ```js

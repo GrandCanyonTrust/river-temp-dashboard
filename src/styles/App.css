@@ -411,6 +411,15 @@ body, .observablehq--root {
   color: var(--color-text-faint);
 }
 
+/* Row that holds the SVG + JPEG export buttons side by side. The
+   margin-top that used to live on .export-btn now lives here instead,
+   so adding a second button doesn't create doubled-up spacing. */
+.export-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
 .export-btn {
   font-family: var(--font-serif);
   font-size: 16px;
@@ -421,7 +430,7 @@ body, .observablehq--root {
   border: 1px solid var(--color-accent-tan);
   color: var(--color-text-muted);
   cursor: pointer;
-  margin-top: 0.75rem;
+  margin-top: 0;
   display: inline-block;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
@@ -429,6 +438,10 @@ body, .observablehq--root {
   background: var(--color-accent-rust);
   border-color: var(--color-accent-rust);
   color: var(--color-bg-card);
+}
+.export-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 /* ────────────────────────────────────────────────────────────── */
@@ -588,6 +601,7 @@ body, .observablehq--root {
   .controls-row { flex-direction: column; }
   .controls-right { border-left: none; padding-left: 0; border-top: 1px solid var(--color-border); padding-top: 0.75rem; }
   .toggle-row { gap: 1rem; flex-wrap: wrap; }
+  .export-row { flex-direction: column; align-items: stretch; }
 
   /* 2026-only */
   .section-card { padding: 1rem; }
