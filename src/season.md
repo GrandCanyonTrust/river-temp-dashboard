@@ -131,7 +131,7 @@ display(htl.html`<p class="last-updated">Data through ${latest?.date.toLocaleDat
   <div class="stat-card stat-card--temp">
     <div class="stat-label">Current Temperature</div>
     <div class="stat-value" style=${{color: statusColor}}>${latest?.tmp.toFixed(1)}°F</div>
-    <div class="stat-sub" style=${{color: statusColor}}>${status === "above" ? "Above threshold" : status === "approaching" ? "Approaching threshold" : "Below threshold"}</div>
+    <div class="stat-sub" style=${{color: statusColor}}>${status === "above" ? "Above Threshold" : status === "approaching" ? "Approaching Threshold" : "Below Threshold"}</div>
   </div>
   <div class="stat-card stat-card--peak">
     <div class="stat-label">Peak This Season</div>
@@ -141,12 +141,12 @@ display(htl.html`<p class="last-updated">Data through ${latest?.date.toLocaleDat
   <div class="stat-card stat-card--days">
     <div class="stat-label">Days Above Threshold</div>
     <div class="stat-value">${daysAbove}</div>
-    <div class="stat-sub">at or above ${threshold.toFixed(1)}°F</div>
+    <div class="stat-sub">At or Above ${threshold.toFixed(1)}°F</div>
   </div>
   <div class="stat-card stat-card--trend">
     <div class="stat-label">Warming Trend</div>
     <div class="stat-value" style=${{color: trendColor}}>${trendArrow} ${trendDelta !== null ? Math.abs(trendDelta).toFixed(2) : "—"}°F</div>
-    <div class="stat-sub">${trendDirection === "rising" ? "Warming vs. prior week" : trendDirection === "falling" ? "Cooling vs. prior week" : "Holding steady"}</div>
+    <div class="stat-sub">${trendDirection === "rising" ? "Warming vs. Prior Week" : trendDirection === "falling" ? "Cooling vs. Prior Week" : "Holding Steady"}</div>
   </div>
 </div>
 
@@ -192,8 +192,8 @@ display(htl.html`<div class="section-card">
   </div>
   <div id="chartCurrent-wrap"></div>
   <div class="inline-legend">
-    <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#537F1C" stroke-width="2.5"/></svg> Below threshold</span>
-    <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#B03823" stroke-width="2.5"/></svg> Above threshold</span>
+    <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#537F1C" stroke-width="2.5"/></svg> Below Threshold</span>
+    <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#B03823" stroke-width="2.5"/></svg> Above Threshold</span>
     <span class="il-item"><svg width="24" height="10"><line x1="0" y1="5" x2="24" y2="5" stroke="#B03823" stroke-width="1.5" stroke-dasharray="4,2"/></svg> ${threshold.toFixed(1)}°F Threshold</span>
   </div>
 </div>`);

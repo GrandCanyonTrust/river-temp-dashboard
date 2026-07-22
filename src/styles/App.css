@@ -252,14 +252,6 @@ body, .observablehq--root {
   font-family: var(--font-mono);
 }
 
-/* 2026 Season page stat cards: render labels in Title Case instead of
-   ALL CAPS (the markup already provides Title Case text, so this just
-   turns off the shared uppercase transform for this row). */
-.season-stats .stat-label {
-  text-transform: none;
-  letter-spacing: 0.02em;
-}
-
 /* ── Site footer ── */
 .site-footer {
   margin-top: 1.5rem;

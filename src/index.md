@@ -264,12 +264,12 @@ function pillToggle(label, initial) {
   return root;
 }
 
-const medianToggleEl = pillToggle("Historical median", true);
+const medianToggleEl = pillToggle("Historical Median", true);
 const showMedian = view(medianToggleEl);
 ```
 
 ```js
-const bandToggleEl = pillToggle("10th–90th percentile band", true);
+const bandToggleEl = pillToggle("10th–90th Percentile band", true);
 const showBand = view(bandToggleEl);
 ```
 
@@ -475,7 +475,7 @@ const legendEl = htl.html`<div class="legend">
       <svg width="32" height="12">
         <rect x="0" y="2" width="32" height="8" fill="#93A87B" opacity="0.4" rx="2"/>
       </svg>
-      <span>10th–90th percentile</span>
+      <span>10th–90th Percentile</span>
     </div>
     <div class="legend-item">
       <svg width="32" height="12">
@@ -618,7 +618,7 @@ exportBtn.onclick = async () => {
       ...visibleYearEntries,
       ...(showHistorical ? [{ label: "Historical", color: "#705C57", dash: "none", type: "line" }] : []),
       ...(showMedian ? [{ label: "Median", color: "#57423E", dash: "6,3", type: "line" }] : []),
-      ...(showBand ? [{ label: "10th–90th percentile", color: "#93A87B", type: "band" }] : []),
+      ...(showBand ? [{ label: "10th–90th Percentile", color: "#93A87B", type: "band" }] : []),
       { label: `${threshold.toFixed(1)}°F Threshold`, color: "#B03823", dash: "4,2", type: "line" },
     ];
 
