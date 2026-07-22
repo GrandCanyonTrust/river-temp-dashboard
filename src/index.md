@@ -683,8 +683,24 @@ display(exportBtn);
 ```js
 display(htl.html`
   <footer class="site-footer">
-    <p class="site-footer-citation">USGS Observations · Dibble et al. (2020) Framework</p>
-    <p class="site-footer-credit">Graphs may be used for non-commercial purposes provided that they are not altered or edited and are appropriately credited to the Grand Canyon Trust.</p>
+    <p class="site-footer-citation">
+      Observations from
+        <a href="https://waterdata.usgs.gov/monitoring-location/USGS-09380000"
+          target="_blank"
+          rel="noopener noreferrer">
+        USGS Gage 09380000
+        </a>
+        · Temperature estimates based on
+        <a href="https://doi.org/10.1002/eap.2279"
+          target="_blank"
+          rel="noopener noreferrer">
+        Dibble et al. (2020)
+        </a>
+        thermal model.
+    </p>
+    <p class="site-footer-credit">
+      Graphs may be used for non-commercial purposes provided that they are not altered or edited and are appropriately credited to the Grand Canyon Trust.
+    </p>
   </footer>
 `);
 ```

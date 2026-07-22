@@ -260,6 +260,8 @@ body, .observablehq--root {
 }
 .site-footer p {
   margin: 0;
+  margin-bottom: 1rem;
+
 }
 .site-footer-citation {
   font-family: var(--font-sans);
