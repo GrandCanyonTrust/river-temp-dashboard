@@ -146,6 +146,7 @@ display(htl.html`
   <nav class="site-nav">
     <a href="./">Overview</a>
     <a href="./season">${currentYear} Season</a>
+    <a href="./coolmix">Cool Mix Flows</a>
   </nav>
 </header>
 `);

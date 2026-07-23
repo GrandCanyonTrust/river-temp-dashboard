@@ -110,6 +110,7 @@ display(htl.html`<header class="site-header">
   <nav class="site-nav">
     <a href="./">Overview</a>
     <a href="./season" aria-current="page">${currentYear} Season</a>
+    <a href="./coolmix">Cool Mix Flows</a>
   </nav>
 </header>`);
 ```
