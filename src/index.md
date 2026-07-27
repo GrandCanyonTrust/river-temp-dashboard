@@ -306,9 +306,21 @@ const showHistorical = view(historicalToggleEl);
 ```
 
 ```js
+// Cool Mix Flows toggle — independently controls whether the heavier
+// dashed on-ramp/off-ramp overlay (drawn per highlighted year from
+// coolMixWindowsByYear / COOL_MIX_EVENTS) is shown on the chart. This is
+// separate from which year is focused: turning it off hides the overlay
+// for whichever year(s) are currently focused (e.g. 2024, 2025) without
+// touching the base temperature lines. It also drives whether the
+// "Cool Mix Flows Active" legend entry appears, on-page and in exports.
+const coolMixToggleEl = pillToggle("Cool Mix Flows", true);
+const showCoolMix = view(coolMixToggleEl);
+```
+
+```js
 display(htl.html`<div class="controls-row">
   <div class="controls-left">${focusYearEl}</div>
-  <div class="controls-right toggle-row">${historicalToggleEl}${medianToggleEl}${bandToggleEl}</div>
+  <div class="controls-right toggle-row">${historicalToggleEl}${medianToggleEl}${bandToggleEl}${coolMixToggleEl}</div>
 </div>`);
 ```
 
@@ -393,7 +405,10 @@ const chartPlot = resize((width) => Plot.plot({
     // and mirrors the same focus/non-focus opacity split as the base line
     // directly above, so switching the focused year or toggling "All"
     // doesn't fight with this overlay — it just rides along with it.
-    ...(focusYear ? highlightedYearRows.flatMap(([year, rows]) => {
+    // Gated on showCoolMix so the "Cool Mix Flows" toggle can turn this
+    // styling on/off independently (e.g. for 2024 / 2025) without
+    // affecting the base temperature lines.
+    ...(focusYear && showCoolMix ? highlightedYearRows.flatMap(([year, rows]) => {
       const window = coolMixWindowsByYear.get(year);
       if (!window) return [];
       const coolRows = rows.filter(d => d.doy >= window.onDoy && d.doy <= window.offDoy);
@@ -504,12 +519,12 @@ const legendEl = htl.html`<div class="legend">
         <span>${year}</span>
       </div>`;
     })}
-    <div class="legend-item legend-item--coolmix">
+    ${showCoolMix ? htl.html`<div class="legend-item legend-item--coolmix">
       <svg width="32" height="12">
         <line x1="0" y1="6" x2="32" y2="6" stroke="#2C0E09" stroke-width="3" stroke-dasharray="1,5" stroke-linecap="round"/>
       </svg>
       <span>Cool Mix Flows Active</span>
-    </div>
+    </div>` : null}
     <div class="legend-item">
       <svg width="32" height="12">
         <line x1="0" y1="6" x2="32" y2="6" stroke="#705C57" stroke-width="2.5"/>
@@ -667,9 +682,9 @@ async function buildExportSvg() {
 
   const legendEntries = [
     ...visibleYearEntries,
-    // Mirrors the on-page legend's cool-mix marker; always shown, same
-    // as the year-independent threshold entry below.
-    { label: "Cool Mix Flows Active", color: "#2C0E09", dash: "1,5", type: "line", lineCap: "round" },
+    // Mirrors the on-page legend's cool-mix marker; only shown when the
+    // "Cool Mix Flows" toggle is on, same as it behaves on-page.
+    ...(showCoolMix ? [{ label: "Cool Mix Flows Active", color: "#2C0E09", dash: "1,5", type: "line", lineCap: "round" }] : []),
     ...(showHistorical ? [{ label: "Historical", color: "#705C57", dash: "none", type: "line" }] : []),
     ...(showMedian ? [{ label: "Median", color: "#57423E", dash: "6,3", type: "line" }] : []),
     ...(showBand ? [{ label: "10th–90th Percentile", color: "#93A87B", type: "band" }] : []),
