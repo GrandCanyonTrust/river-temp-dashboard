@@ -306,13 +306,13 @@ const showHistorical = view(historicalToggleEl);
 ```
 
 ```js
-// Cool Mix Flows toggle — independently controls whether the heavier
-// dashed on-ramp/off-ramp overlay (drawn per highlighted year from
-// coolMixWindowsByYear / COOL_MIX_EVENTS) is shown on the chart. This is
-// separate from which year is focused: turning it off hides the overlay
-// for whichever year(s) are currently focused (e.g. 2024, 2025) without
-// touching the base temperature lines. It also drives whether the
-// "Cool Mix Flows Active" legend entry appears, on-page and in exports.
+// Cool Mix Flows toggle — independently controls whether the soft "halo"
+// glow overlay (drawn per highlighted year from coolMixWindowsByYear /
+// COOL_MIX_EVENTS) is shown on the chart. This is separate from which
+// year is focused: turning it off hides the halo for whichever year(s)
+// are currently focused (e.g. 2024, 2025) without touching the base
+// temperature lines. It also drives whether the "Cool Mix Flows Active"
+// legend entry appears, on-page and in exports.
 const coolMixToggleEl = pillToggle("Cool Mix Flows", true);
 const showCoolMix = view(coolMixToggleEl);
 ```
@@ -389,6 +389,49 @@ const chartPlot = resize((width) => Plot.plot({
         title: d => `${d.year} — ${doyToMonthDay(d.doy)}\n${d.tmp.toFixed(1)}°F`,
       })
     )] : []),
+    // Cool Mix Flow halo: a soft, wide, low-opacity glow drawn UNDERNEATH
+    // the base temperature line, but only across each highlighted year's
+    // on-ramp→off-ramp window (as defined by COOL_MIX_EVENTS in
+    // config.js). Because this halo is drawn before (i.e. beneath) the
+    // base line mark directly below, the crisp colored line still reads
+    // on top, with a soft glow "around" it only during the cool mix
+    // window — instead of the old heavier dashed line drawn over the top.
+    // It reuses that year's own color and mirrors the same focus/
+    // non-focus opacity split as the base line, so switching the focused
+    // year or toggling "All" doesn't fight with this overlay — it just
+    // rides along with it. Gated on showCoolMix so the "Cool Mix Flows"
+    // toggle can turn this styling on/off independently (e.g. for 2024 /
+    // 2025) without affecting the base temperature lines.
+    ...(focusYear && showCoolMix ? highlightedYearRows.flatMap(([year, rows]) => {
+      const window = coolMixWindowsByYear.get(year);
+      if (!window) return [];
+      const coolRows = rows.filter(d => d.doy >= window.onDoy && d.doy <= window.offDoy);
+      if (coolRows.length < 2) return [];
+      const isFocus = focusYear === "All" || String(year) === focusYear;
+      // Two stacked strokes build the halo: a wide, very soft outer glow
+      // plus a slightly tighter, slightly stronger inner glow, so the
+      // falloff feels soft rather than a single flat band of opacity.
+      return [
+        Plot.line(coolRows, {
+          x: "doy", y: "tmp",
+          stroke: yearColors[year].color,
+          strokeWidth: isFocus ? 16 : 8,
+          strokeOpacity: isFocus ? 0.12 : 0.05,
+          strokeLinecap: "round",
+          strokeLinejoin: "round",
+          class: `coolmix-halo coolmix-halo-outer coolmix-year-${year}`,
+        }),
+        Plot.line(coolRows, {
+          x: "doy", y: "tmp",
+          stroke: yearColors[year].color,
+          strokeWidth: isFocus ? 9 : 4.5,
+          strokeOpacity: isFocus ? 0.28 : 0.1,
+          strokeLinecap: "round",
+          strokeLinejoin: "round",
+          class: `coolmix-halo coolmix-halo-inner coolmix-year-${year}`,
+        }),
+      ];
+    }) : []),
     ...(focusYear ? highlightedYearRows.map(([year, rows]) => {
       const isFocus = focusYear === "All" || String(year) === focusYear;
       return Plot.line(rows, {
@@ -398,31 +441,6 @@ const chartPlot = resize((width) => Plot.plot({
         strokeOpacity: isFocus ? 1 : 0.2,
         strokeDasharray: (yearColors[year]?.dash ?? []).join(" "),
       });
-    }) : []),
-    // Cool Mix Flow emphasis: an extra heavier, dashed overlay drawn only
-    // across each highlighted year's on-ramp→off-ramp window (as defined
-    // by COOL_MIX_EVENTS in config.js). It reuses that year's own color
-    // and mirrors the same focus/non-focus opacity split as the base line
-    // directly above, so switching the focused year or toggling "All"
-    // doesn't fight with this overlay — it just rides along with it.
-    // Gated on showCoolMix so the "Cool Mix Flows" toggle can turn this
-    // styling on/off independently (e.g. for 2024 / 2025) without
-    // affecting the base temperature lines.
-    ...(focusYear && showCoolMix ? highlightedYearRows.flatMap(([year, rows]) => {
-      const window = coolMixWindowsByYear.get(year);
-      if (!window) return [];
-      const coolRows = rows.filter(d => d.doy >= window.onDoy && d.doy <= window.offDoy);
-      if (coolRows.length < 2) return [];
-      const isFocus = focusYear === "All" || String(year) === focusYear;
-      return [Plot.line(coolRows, {
-        x: "doy", y: "tmp",
-        stroke: yearColors[year].color,
-        strokeWidth: isFocus ? 5.5 : 2,
-        strokeOpacity: isFocus ? 0.95 : 0.22,
-        strokeDasharray: "1 5",
-        strokeLinecap: "round",
-        class: `coolmix-line coolmix-year-${year}`,
-      })];
     }) : []),
     ...(focusYear ? [Plot.text(
       (() => {
@@ -521,7 +539,8 @@ const legendEl = htl.html`<div class="legend">
     })}
     ${showCoolMix ? htl.html`<div class="legend-item legend-item--coolmix">
       <svg width="32" height="12">
-        <line x1="0" y1="6" x2="32" y2="6" stroke="#2C0E09" stroke-width="3" stroke-dasharray="1,5" stroke-linecap="round"/>
+        <line x1="0" y1="6" x2="32" y2="6" stroke="#2C0E09" stroke-width="9" stroke-opacity="0.2" stroke-linecap="round"/>
+        <line x1="0" y1="6" x2="32" y2="6" stroke="#2C0E09" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
       <span>Cool Mix Flows Active</span>
     </div>` : null}
@@ -682,9 +701,10 @@ async function buildExportSvg() {
 
   const legendEntries = [
     ...visibleYearEntries,
-    // Mirrors the on-page legend's cool-mix marker; only shown when the
-    // "Cool Mix Flows" toggle is on, same as it behaves on-page.
-    ...(showCoolMix ? [{ label: "Cool Mix Flows Active", color: "#2C0E09", dash: "1,5", type: "line", lineCap: "round" }] : []),
+    // Mirrors the on-page legend's cool-mix halo marker (a soft wide
+    // glow behind a thin core line); only shown when the "Cool Mix
+    // Flows" toggle is on, same as it behaves on-page.
+    ...(showCoolMix ? [{ label: "Cool Mix Flows Active", color: "#2C0E09", type: "halo" }] : []),
     ...(showHistorical ? [{ label: "Historical", color: "#705C57", dash: "none", type: "line" }] : []),
     ...(showMedian ? [{ label: "Median", color: "#57423E", dash: "6,3", type: "line" }] : []),
     ...(showBand ? [{ label: "10th–90th Percentile", color: "#93A87B", type: "band" }] : []),
@@ -711,6 +731,9 @@ async function buildExportSvg() {
   const legendItemsSvg = legendPositioned.map(entry => {
     const mark = entry.type === "band"
       ? `<rect x="${entry.x}" y="${entry.y - 4}" width="${markWidth}" height="8" fill="${entry.color}" opacity="0.4" rx="2"/>`
+      : entry.type === "halo"
+      ? `<line x1="${entry.x}" y1="${entry.y}" x2="${entry.x + markWidth}" y2="${entry.y}" stroke="${entry.color}" stroke-width="9" stroke-opacity="0.2" stroke-linecap="round"/>
+         <line x1="${entry.x}" y1="${entry.y}" x2="${entry.x + markWidth}" y2="${entry.y}" stroke="${entry.color}" stroke-width="2.5" stroke-linecap="round"/>`
       : `<line x1="${entry.x}" y1="${entry.y}" x2="${entry.x + markWidth}" y2="${entry.y}" stroke="${entry.color}" stroke-width="2.5" stroke-dasharray="${entry.dash}"${entry.lineCap ? ` stroke-linecap="${entry.lineCap}"` : ""}/>`;
     return `${mark}<text x="${entry.x + markWidth + markGap}" y="${entry.y + 4}" font-family="Source Sans 3, sans-serif" font-size="${legendFontSize}" fill="#8C7A76">${escapeXml(entry.label)}</text>`;
   }).join("");
