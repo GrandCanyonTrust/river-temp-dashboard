@@ -15,3 +15,8 @@
 // set in the RM15_water_temp data loader
 export const OVERRIDE_YEAR = null;
 export const RIVER_MILE = 15;
+
+export const COOL_MIX_EVENTS = [
+  { year: 2024, onRamp: "2024-07-09", offRamp: "2024-11-18" },
+  { year: 2025, onRamp: "2025-08-03", offRamp: "2025-10-20" },
+];

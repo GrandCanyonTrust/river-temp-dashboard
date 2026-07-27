@@ -5,7 +5,7 @@ toc: false
 <link rel="stylesheet" href="./styles/App.css">
 
 ```js
-import {OVERRIDE_YEAR, RIVER_MILE} from "./config.js";
+import {OVERRIDE_YEAR, RIVER_MILE, COOL_MIX_EVENTS} from "./config.js";
 
 // Palette entries are paired with years oldest→newest (index 0 = 4 years
 // back, last index = currentYear). All years now render as solid lines —
@@ -85,6 +85,28 @@ const byYear = d3.group(annotated, d => d.year);
 const highlightedYears = new Set(Object.keys(yearColors).map(Number));
 const historicalYears = Array.from(byYear).filter(([year]) => !highlightedYears.has(year));
 const highlightedYearRows = Array.from(byYear).filter(([year]) => highlightedYears.has(year));
+```
+
+```js
+// ── Cool Mix Flow windows ───────────────────────────────────────────
+// Converts each COOL_MIX_EVENTS on-ramp/off-ramp date (from config.js)
+// into a day-of-year range, using the exact same "doy" convention as
+// `annotated` above (d3.utcDay.count(d3.utcYear(date), date)), so the
+// windows compare directly against any highlighted year's row.doy.
+//
+// This is the ONLY thing needed to add or change a cool mix window —
+// everything downstream (the chart overlay, the legend) reads from
+// this map and from COOL_MIX_EVENTS in config.js.
+const coolMixWindowsByYear = new Map(
+  COOL_MIX_EVENTS.map(ev => {
+    const onDate = d3.timeParse("%Y-%m-%d")(ev.onRamp);
+    const offDate = d3.timeParse("%Y-%m-%d")(ev.offRamp);
+    return [ev.year, {
+      onDoy: d3.utcDay.count(d3.utcYear(onDate), onDate),
+      offDoy: d3.utcDay.count(d3.utcYear(offDate), offDate),
+    }];
+  })
+);
 ```
 
 ```js
@@ -365,6 +387,28 @@ const chartPlot = resize((width) => Plot.plot({
         strokeDasharray: (yearColors[year]?.dash ?? []).join(" "),
       });
     }) : []),
+    // Cool Mix Flow emphasis: an extra heavier, dashed overlay drawn only
+    // across each highlighted year's on-ramp→off-ramp window (as defined
+    // by COOL_MIX_EVENTS in config.js). It reuses that year's own color
+    // and mirrors the same focus/non-focus opacity split as the base line
+    // directly above, so switching the focused year or toggling "All"
+    // doesn't fight with this overlay — it just rides along with it.
+    ...(focusYear ? highlightedYearRows.flatMap(([year, rows]) => {
+      const window = coolMixWindowsByYear.get(year);
+      if (!window) return [];
+      const coolRows = rows.filter(d => d.doy >= window.onDoy && d.doy <= window.offDoy);
+      if (coolRows.length < 2) return [];
+      const isFocus = focusYear === "All" || String(year) === focusYear;
+      return [Plot.line(coolRows, {
+        x: "doy", y: "tmp",
+        stroke: yearColors[year].color,
+        strokeWidth: isFocus ? 5.5 : 2,
+        strokeOpacity: isFocus ? 0.95 : 0.22,
+        strokeDasharray: "1 5",
+        strokeLinecap: "round",
+        class: `coolmix-line coolmix-year-${year}`,
+      })];
+    }) : []),
     ...(focusYear ? [Plot.text(
       (() => {
         const peaks = highlightedYearRows
@@ -460,6 +504,12 @@ const legendEl = htl.html`<div class="legend">
         <span>${year}</span>
       </div>`;
     })}
+    <div class="legend-item legend-item--coolmix">
+      <svg width="32" height="12">
+        <line x1="0" y1="6" x2="32" y2="6" stroke="#2C0E09" stroke-width="3" stroke-dasharray="1,5" stroke-linecap="round"/>
+      </svg>
+      <span>Cool Mix Flows Active</span>
+    </div>
     <div class="legend-item">
       <svg width="32" height="12">
         <line x1="0" y1="6" x2="32" y2="6" stroke="#705C57" stroke-width="2.5"/>
@@ -617,6 +667,9 @@ async function buildExportSvg() {
 
   const legendEntries = [
     ...visibleYearEntries,
+    // Mirrors the on-page legend's cool-mix marker; always shown, same
+    // as the year-independent threshold entry below.
+    { label: "Cool Mix Flows Active", color: "#2C0E09", dash: "1,5", type: "line", lineCap: "round" },
     ...(showHistorical ? [{ label: "Historical", color: "#705C57", dash: "none", type: "line" }] : []),
     ...(showMedian ? [{ label: "Median", color: "#57423E", dash: "6,3", type: "line" }] : []),
     ...(showBand ? [{ label: "10th–90th Percentile", color: "#93A87B", type: "band" }] : []),
@@ -643,7 +696,7 @@ async function buildExportSvg() {
   const legendItemsSvg = legendPositioned.map(entry => {
     const mark = entry.type === "band"
       ? `<rect x="${entry.x}" y="${entry.y - 4}" width="${markWidth}" height="8" fill="${entry.color}" opacity="0.4" rx="2"/>`
-      : `<line x1="${entry.x}" y1="${entry.y}" x2="${entry.x + markWidth}" y2="${entry.y}" stroke="${entry.color}" stroke-width="2.5" stroke-dasharray="${entry.dash}"/>`;
+      : `<line x1="${entry.x}" y1="${entry.y}" x2="${entry.x + markWidth}" y2="${entry.y}" stroke="${entry.color}" stroke-width="2.5" stroke-dasharray="${entry.dash}"${entry.lineCap ? ` stroke-linecap="${entry.lineCap}"` : ""}/>`;
     return `${mark}<text x="${entry.x + markWidth + markGap}" y="${entry.y + 4}" font-family="Source Sans 3, sans-serif" font-size="${legendFontSize}" fill="#8C7A76">${escapeXml(entry.label)}</text>`;
   }).join("");
 
