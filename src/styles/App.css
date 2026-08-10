@@ -163,9 +163,24 @@ body, .observablehq--root {
   color: rgb(176 56 35);
 }
 .hero-temp-unit {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-weight: 400;
   opacity: 0.8;
+}
+
+.hero-temp-sep {
+  font-size: 1.6rem;
+  font-weight: 300;
+  color: rgb(176 56 35);
+  opacity: 0.45;
+  margin-left: 0.35rem;
+  margin-right: 0.35rem;
+}
+.hero-temp-c {
+  font-size: 1rem;
+  font-weight: 400;
+  color: rgb(176 56 35);
+  opacity: 0.75;
 }
 .hero-temp-label {
   font-family: var(--font-sans);
@@ -233,6 +248,17 @@ body, .observablehq--root {
   line-height: 1;
   color: var(--color-text-dark);
   margin-bottom: 0.22rem;
+}
+/* Secondary °C reading inline with a stat-value (currently used on the
+   Cool Mix Threshold card only). Sized down and muted relative to the
+   °F figure it follows, so °F still reads as the headline number. */
+.stat-value-c {
+  font-size: 0.52em;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+  margin-left: 0.25em;
+  letter-spacing: 0;
 }
 .stat-sub {
   font-family: var(--font-sans);

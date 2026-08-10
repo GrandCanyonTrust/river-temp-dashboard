@@ -23,7 +23,13 @@ const yearPalette = [
 
 ```js
 // ── Unit conversion ───────────────────────────────────────────────
+// tmp is stored in °F throughout (see the parse step below) since that's
+// the unit the chart, threshold comparisons, and historical stats are
+// built around. toC() converts an already-Fahrenheit value back to °C
+// purely for display, so it can be dropped in next to any °F reading
+// without touching how anything is computed.
 const toF = c => c * 9 / 5 + 32;
+const toC = f => (f - 32) * 5 / 9;
 ```
 
 ```js
@@ -184,7 +190,7 @@ display(htl.html`<div class="hero">
       <p class="hero-sub">Smallmouth Bass Spawning Threshold</p>
     </div>
     <div class="hero-right">
-      <div class="hero-temp">${currentTemp?.toFixed(1)}<span class="hero-temp-unit">°F</span></div>
+      <div class="hero-temp">${currentTemp?.toFixed(1)}<span class="hero-temp-unit">°F</span><span class="hero-temp-sep">/</span><span class="hero-temp-c">${currentTemp !== undefined ? toC(currentTemp).toFixed(1) : "—"}°C</span></div>
       <div class="hero-temp-label">${statusLabel}</div>
       <div class="hero-temp-date">${latest?.date.toLocaleDateString("en-US", {month: "short", day: "numeric"})}</div>
     </div>
@@ -210,7 +216,7 @@ display(htl.html`<div class="hero">
   </div>
   <div class="stat-card stat-card--threshold">
     <div class="stat-label">Cool Mix Threshold</div>
-    <div class="stat-value">${threshold.toFixed(1)}°F</div>
+    <div class="stat-value">${threshold.toFixed(1)}°F <span class="stat-value-c">(${toC(threshold).toFixed(1)}°C)</span></div>
     <div class="stat-sub">Triggers Dam Release with Cool Mix Flows</div>
   </div>
 </div>
@@ -365,7 +371,9 @@ const chartPlot = resize((width) => Plot.plot({
     Plot.ruleY([threshold], {
       stroke: "#B03823", strokeDasharray: "4 2", strokeWidth: 1.2,
     }),
-    // Threshold value labeled neatly right above its dashed rule line
+    // Threshold value labeled neatly right above its dashed rule line.
+    // °F leads (matches the axis and every other on-chart reading);
+    // °C follows in parentheses.
     Plot.text([{}], {
       x: 364, y: threshold,
       text: () => `${threshold.toFixed(1)}°F`,
@@ -647,12 +655,14 @@ async function buildExportSvg() {
   // Same hierarchy as the on-page hero: the location/park line reads
   // first, "Daily Water Temperature" is the prominent headline, and
   // "Smallmouth Bass Spawning Threshold" is demoted to a small italic
-  // subtitle beneath it.
+  // subtitle beneath it. The current reading leads with °F (large,
+  // bold) with °C directly beneath it in a smaller, muted line.
   const titleLine1 = "Daily Water Temperature";
   const titleLine2 = "Smallmouth Bass Spawning Threshold";
   const titleX = padX + logoWidth + 24;
   const heroRightX = chartWidth - padX;
   const currentTempStr = currentTemp !== undefined ? `${currentTemp.toFixed(1)}°F` : "—";
+  const currentTempCStr = currentTemp !== undefined ? `${toC(currentTemp).toFixed(1)}°C` : "";
   const heroDateStr = latest?.date ? latest.date.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
 
   const headerTopSvg = `
@@ -660,7 +670,7 @@ async function buildExportSvg() {
     <text x="${titleX}" y="40" font-family="Source Sans 3, sans-serif" font-size="13" letter-spacing="2" fill="#705C57">${escapeXml(`COLORADO RIVER MILE ${RIVER_MILE} · GRAND CANYON NATIONAL PARK`)}</text>
     <text x="${titleX}" y="66" font-family="PT Serif, Georgia, serif" font-size="24" font-weight="600" fill="#251F21">${escapeXml(titleLine1)}</text>
     <text x="${titleX}" y="86" font-family="PT Serif, Georgia, serif" font-size="14" font-style="italic" fill="#705C57">${escapeXml(titleLine2)}</text>
-    <text x="${heroRightX}" y="50" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="32" font-weight="500" fill="#B03823">${escapeXml(currentTempStr)}</text>
+    <text x="${heroRightX}" y="50" text-anchor="end" font-family="IBM Plex Mono, monospace" font-weight="500" fill="#B03823"><tspan font-size="32">${escapeXml(currentTempStr)}</tspan><tspan font-size="18" opacity="0.5" dx="6">/</tspan><tspan font-size="18" opacity="0.75" dx="6">${escapeXml(currentTempCStr)}</tspan></text>
     <text x="${heroRightX}" y="70" text-anchor="end" font-family="Source Sans 3, sans-serif" font-size="14" letter-spacing="1" fill="#B03823">${escapeXml(statusLabel.toUpperCase())}</text>
     <text x="${heroRightX}" y="88" text-anchor="end" font-family="Source Sans 3, sans-serif" font-size="13" fill="#251F21">${escapeXml(heroDateStr)}</text>
   `;
@@ -672,7 +682,7 @@ async function buildExportSvg() {
     { label: "LAST READING DATE", value: lastUpdatedStr, sub: "Most Recent USGS Reading" },
     { label: "7-DAY TREND", value: `${trendArrow} ${trendDelta !== null ? Math.abs(trendDelta).toFixed(2) : "—"}°F`, valueColor: trendColor, sub: trendSub },
     { label: "DAYS ABOVE THRESHOLD", value: String(daysAbove), sub: daysAboveSub },
-    { label: "COOL MIX THRESHOLD", value: `${threshold.toFixed(1)}°F`, sub: "Triggers Dam Release with Cool Mix Flows" },
+    { label: "COOL MIX THRESHOLD", value: `${threshold.toFixed(1)}°F (${toC(threshold).toFixed(1)}°C)`, sub: "Triggers Dam Release with Cool Mix Flows" },
   ];
   const statTop = ruleY + 24;
   const colWidth = (chartWidth - padX * 2) / statEntries.length;
