@@ -204,7 +204,6 @@ Curious what the water temperature is in the Grand Canyon? We’ve created a too
 
 <p class="last-updated">
 The tool also tracks whether the threshold temperature (15.5 ℃/59.5 ℉) for cool mix flows has been reached. Cool mix flows were developed in 2024 as a tool to reduce water temperatures in the Grand Canyon by releasing water through the deepest outlets in Glen Canyon Dam. Cooler water helps prevent the reproduction and establishment of nonnative fish, like smallmouth bass, which threaten the recovery of imperiled native fish like the humpback chub.
-
 </p>
 
 <div class="stat-row">
