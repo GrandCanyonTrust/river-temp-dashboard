@@ -99,15 +99,17 @@ display(htl.html`<div class="hero">
   <div class="hero-bg"></div>
   <p class="hero-eyebrow">Colorado River Mile ${RIVER_MILE} · Grand Canyon National Park</p>
   <h1 class="hero-title">Cool Mix Flows</h1>
-  <p class="hero-sub">Placeholder edit blah blah</p>
+  <p class="hero-sub">Strategy to protect native fishery in Grand Canyon</p>
 </div>`);
 ```
 
 <p class="last-updated">
-[Intro placeholder — Jen's blurb here.] Cool Mix flows release cold water from deep in Lake Powell
-through Glen Canyon Dam's bypass tubes, cooling the river below 15.5°C (59.9°F) — too cold for invasive
-smallmouth bass to spawn. The shaded band in each line below marks the actual dates Cool Mix was active
-that year.
+Cool mix flows were developed in 2024 as a tool to reduce the temperature of the Colorado River in the Grand Canyon. To cool the river below the dam, water is released through the lowest river outlets deep within Lake Powell. Cold temperatures reduce the ability of nonnative fish, like smallmouth bass, to reproduce and establish. Smallmouth bass prey on and compete with native fish, like humpback chub, and could threaten the native fish in the Grand Canyon.
+</p>
+
+<p class="last-updated">
+The cool mix flow experiment was conducted in 2024 and 2025 to lower water temperatures in the Grand Canyon and prevent expansion of the population of smallmouth bass. This effort was successful in that no reproduction of smallmouth bass was detected in those years. Shaded bands on the graph show the dates when cool mix flows were conducted in each year.
+
 </p>
 
 ```js

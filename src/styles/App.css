@@ -207,6 +207,8 @@ body, .observablehq--root {
   border-left: 2px solid #D69D84;
   padding-left: 8px;
   margin: 0 0 1.25rem;
+  max-width: 130ch;   
+  line-height: 1.5; 
 }
 
 /* ── Stat row (shared grid + card shell) ── */
