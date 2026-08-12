@@ -187,10 +187,10 @@ display(htl.html`<div class="hero">
     <div class="hero-left">
       <p class="hero-eyebrow">Colorado River Mile ${RIVER_MILE} · Grand Canyon National Park</p>
       <h1 class="hero-title">Daily Water Temperature</h1>
-      <p class="hero-sub">Smallmouth Bass Spawning Threshold</p>
+      <p class="hero-sub">Cool Mix Threshold</p>
     </div>
     <div class="hero-right">
-      <div class="hero-temp">${currentTemp?.toFixed(1)}<span class="hero-temp-unit">°F</span><span class="hero-temp-sep">/</span><span class="hero-temp-c">${currentTemp !== undefined ? toC(currentTemp).toFixed(1) : "—"}°C</span></div>
+      <div class="hero-temp">${currentTemp?.toFixed(1)}<span class="hero-temp-unit">°F</span>
       <div class="hero-temp-label">${statusLabel}</div>
       <div class="hero-temp-date">${latest?.date.toLocaleDateString("en-US", {month: "short", day: "numeric"})}</div>
     </div>
@@ -652,11 +652,6 @@ async function buildExportSvg() {
   const logoWidth = logoInfo.width && logoInfo.height ? (logoInfo.width / logoInfo.height) * logoHeight : logoHeight;
 
   // ── Header: logo, title, current reading ─────────────────
-  // Same hierarchy as the on-page hero: the location/park line reads
-  // first, "Daily Water Temperature" is the prominent headline, and
-  // "Smallmouth Bass Spawning Threshold" is demoted to a small italic
-  // subtitle beneath it. The current reading leads with °F (large,
-  // bold) with °C directly beneath it in a smaller, muted line.
   const titleLine1 = "Daily Water Temperature";
   const titleLine2 = "Smallmouth Bass Spawning Threshold";
   const titleX = padX + logoWidth + 24;

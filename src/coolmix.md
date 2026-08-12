@@ -184,6 +184,10 @@ Cool mix flows began in 2024 as a tool to reduce water temperatures in the Color
 In 2024 and 2025, managers conducted cool-mix flow experiments to lower water temperatures and prevent smallmoth bass from expanding into Grand Canyon National Park. The graph shows how water temperatures changed during the cool-mix flow periods, marked by the shaded bands. In both years, cool-mix flows brought temperatures down during periods when they would have exceeded the 59.5 °F (15.5 °C) threshold. No smallmouth bass reproduction was detected during either year.
 </p>
 
+<p class="last-updated">
+Reclamation determined not to implement cool mix flows in 2026.
+</p>
+
 ```js
 // ── Compact reference table ────────────────────────────────────────
 display(htl.html`<div class="section-card section-card--table">

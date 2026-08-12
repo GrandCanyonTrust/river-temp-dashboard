@@ -184,7 +184,7 @@ body, .observablehq--root {
 }
 .hero-temp-label {
   font-family: var(--font-sans);
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 400;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -201,8 +201,8 @@ body, .observablehq--root {
 /* ── Last updated ── */
 .last-updated {
   font-family: var(--font-serif);
-  font-size: 16px;
-  font-style: italic;
+  font-size: 18px;
+  font-style: normal;
   color: var(--color-text-faint);
   border-left: 2px solid #D69D84;
   padding-left: 8px;
