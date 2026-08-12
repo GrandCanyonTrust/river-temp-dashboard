@@ -198,14 +198,6 @@ display(htl.html`<div class="hero">
 </div>`);
 ```
 
-<p class="last-updated">
-Curious what the water temperature is in the Grand Canyon? We’ve created a tool for that. This figure shows daily water temperature of the Colorado River at River Mile 15 (a few miles below Soap Creek Rapid). 
-</p>
-
-<p class="last-updated">
-The tool also tracks whether the threshold temperature (15.5 ℃/59.5 ℉) for cool mix flows has been reached. Cool mix flows were developed in 2024 as a tool to reduce water temperatures in the Grand Canyon by releasing water through the deepest outlets in Glen Canyon Dam. Cooler water helps prevent the reproduction and establishment of nonnative fish, like smallmouth bass, which threaten the recovery of imperiled native fish like the humpback chub.
-</p>
-
 <div class="stat-row">
   <div class="stat-card stat-card--reading">
     <div class="stat-label">Last Reading Date</div>
@@ -867,6 +859,19 @@ exportJpegBtn.onclick = async () => {
 
 display(htl.html`<div class="export-row">${exportSvgBtn}${exportJpegBtn}</div>`);
 ```
+
+<p class="last-updated">
+Curious about water temperatures in the Grand Canyon? This tool tracks the daily water temperature of the Colorado River at river mile 15, a few miles downstream of Soap Creek Rapid. 
+</p>
+
+<p class="last-updated">
+In recent years, river temperatures have been trending warmer as declining water levels in Lake Powell have caused warmer water to be released from Glen Canyon Dam. Use the graph to see how river temperatures change over time and understand when they reach an important threshold.
+</p>
+
+<p class="last-updated">
+At 59.5 ℉ (15.5 ℃), conditions warrant cool mix flows, a management tool introduced in 2024 to help cool the Colorado River. Cool-mix flows release colder water from the deepest outlets of Glen Canyon Dam. Cooler water makes conditions less favorable for nonnative fish, such as smallmouth bass, to reproduce and become established. Limiting the spread of these fish can help protect imperiled native species like the humpback chub.
+</p>
+
 
 ```js
 display(htl.html`
