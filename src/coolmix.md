@@ -88,7 +88,7 @@ display(htl.html`
   <nav class="site-nav">
     <a href="./">Overview</a>
     <a href="./season">${currentYear} Season</a>
-    <a href="./cool-mix" aria-current="page">Cool Mix Flows</a>
+    <a href="./cool-mix" aria-current="page">Cool-Mix Flows</a>
   </nav>
 </header>
 `);
@@ -98,7 +98,7 @@ display(htl.html`
 display(htl.html`<div class="hero">
   <div class="hero-bg"></div>
   <p class="hero-eyebrow">Colorado River Mile ${RIVER_MILE} · Grand Canyon National Park</p>
-  <h1 class="hero-title">Cool Mix Flows</h1>
+  <h1 class="hero-title">Cool-Mix Flows</h1>
   <p class="hero-sub">A strategy to protect native fish in the Grand Canyon</p>
 </div>`);
 ```
@@ -163,7 +163,7 @@ const legendEl = htl.html`<div class="legend">
       <svg width="32" height="12">
         <line x1="0" y1="6" x2="32" y2="6" stroke="${yearColors[d.year]}" stroke-width="2.5" />
       </svg>
-      <span>${d.year} (Cool Mix active ${d.onRamp.toLocaleDateString("en-US", {month: "short", day: "numeric"})}–${d.offRamp.toLocaleDateString("en-US", {month: "short", day: "numeric"})})</span>
+      <span>${d.year} (Cool-Mix active ${d.onRamp.toLocaleDateString("en-US", {month: "short", day: "numeric"})}–${d.offRamp.toLocaleDateString("en-US", {month: "short", day: "numeric"})})</span>
     </div>`)}
     <div class="legend-item">
       <svg width="32" height="12">
@@ -177,22 +177,22 @@ display(legendEl);
 ```
 
 <p class="last-updated">
-Cool mix flows began in 2024 as a tool to reduce water temperatures in the Colorado River through the Grand Canyon. To cool the river below Glen Canyon Dam, managers release colder water through the lowest outlets deep within Lake Powell. Cold temperatures reduce the ability of nonnative fish, like smallmouth bass, to reproduce and establish populations. Smallmouth bass prey on and compete with native fish, like humpback chub, and their expansion could threaten native fish in the Grand Canyon.
+Cool-mix flows began in 2024 as a tool to reduce water temperatures in the Colorado River through the Grand Canyon. To cool the river below Glen Canyon Dam, managers release colder water through the lowest outlets deep within Lake Powell. Cold temperatures reduce the ability of nonnative fish, like smallmouth bass, to reproduce and establish populations. Smallmouth bass prey on and compete with native fish, like humpback chub, and their expansion could threaten native fish in the Grand Canyon.
 </p>
 
 <p class="last-updated">
-In 2024 and 2025, managers conducted cool-mix flow experiments to lower water temperatures and prevent smallmoth bass from expanding into Grand Canyon National Park. The graph shows how water temperatures changed during the cool-mix flow periods, marked by the shaded bands. In both years, cool-mix flows brought temperatures down during periods when they would have exceeded the 59.5 °F (15.5 °C) threshold. No smallmouth bass reproduction was detected during either year.
+In 2024 and 2025, managers conducted cool-mix flow experiments to lower water temperatures and prevent smallmouth bass from expanding into Grand Canyon National Park. The graph shows how water temperatures changed during the cool-mix flow periods, marked by the shaded bands. In both years, cool-mix flows brought temperatures down during periods when they would have exceeded the 59.5 °F (15.5 °C) threshold. No smallmouth bass reproduction was detected during either year.
 </p>
 
 <p class="last-updated">
-In 2026, water managers decided not to implement cool mix flows.
+In 2026, water managers decided not to implement cool-mix flows.
 </p>
 
 ```js
 // ── Compact reference table ────────────────────────────────────────
 display(htl.html`<div class="section-card section-card--table">
   <div class="section-card-header">
-    <h2 class="section-card-title">Cool Mix Reference</h2>
+    <h2 class="section-card-title">Cool-Mix Reference</h2>
   </div>
   <div class="recent-table-scroll">
   <table class="recent-table">

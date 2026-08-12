@@ -174,7 +174,7 @@ display(htl.html`
   <nav class="site-nav">
     <a href="./">Overview</a>
     <a href="./season">${currentYear} Season</a>
-    <a href="./coolmix">Cool Mix Flows</a>
+    <a href="./coolmix">Cool-Mix Flows</a>
   </nav>
 </header>
 `);
@@ -187,7 +187,7 @@ display(htl.html`<div class="hero">
     <div class="hero-left">
       <p class="hero-eyebrow">Colorado River Mile ${RIVER_MILE} · Grand Canyon National Park</p>
       <h1 class="hero-title">Daily Water Temperature</h1>
-      <p class="hero-sub">Cool Mix Threshold</p>
+      <p class="hero-sub">Cool-Mix Threshold</p>
     </div>
     <div class="hero-right">
       <div class="hero-temp">${currentTemp?.toFixed(1)}<span class="hero-temp-unit">°F</span>
@@ -215,9 +215,9 @@ display(htl.html`<div class="hero">
     <div class="stat-sub">${daysAboveSub}</div>
   </div>
   <div class="stat-card stat-card--threshold">
-    <div class="stat-label">Cool Mix Threshold</div>
+    <div class="stat-label">Cool-Mix Threshold</div>
     <div class="stat-value">${threshold.toFixed(1)}°F <span class="stat-value-c">(${toC(threshold).toFixed(1)}°C)</span></div>
-    <div class="stat-sub">Triggers Dam Release with Cool Mix Flows</div>
+    <div class="stat-sub">Triggers Dam Release with Cool-Mix Flows</div>
   </div>
 </div>
 
@@ -319,7 +319,7 @@ const showHistorical = view(historicalToggleEl);
 // are currently focused (e.g. 2024, 2025) without touching the base
 // temperature lines. It also drives whether the "Cool Mix Flows Active"
 // legend entry appears, on-page and in exports.
-const coolMixToggleEl = pillToggle("Cool Mix Flows", true);
+const coolMixToggleEl = pillToggle("Cool-Mix Flows", true);
 const showCoolMix = view(coolMixToggleEl);
 ```
 
@@ -550,7 +550,7 @@ const legendEl = htl.html`<div class="legend">
         <line x1="0" y1="6" x2="32" y2="6" stroke="#2C0E09" stroke-width="9" stroke-opacity="0.2" stroke-linecap="round"/>
         <line x1="0" y1="6" x2="32" y2="6" stroke="#2C0E09" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
-      <span>Cool Mix Flows Active</span>
+      <span>Cool-Mix Flows Active</span>
     </div>` : null}
     <div class="legend-item">
       <svg width="32" height="12">
@@ -677,7 +677,7 @@ async function buildExportSvg() {
     { label: "LAST READING DATE", value: lastUpdatedStr, sub: "Most Recent USGS Reading" },
     { label: "7-DAY TREND", value: `${trendArrow} ${trendDelta !== null ? Math.abs(trendDelta).toFixed(2) : "—"}°F`, valueColor: trendColor, sub: trendSub },
     { label: "DAYS ABOVE THRESHOLD", value: String(daysAbove), sub: daysAboveSub },
-    { label: "COOL MIX THRESHOLD", value: `${threshold.toFixed(1)}°F (${toC(threshold).toFixed(1)}°C)`, sub: "Triggers Dam Release with Cool Mix Flows" },
+    { label: "COOL-MIX THRESHOLD", value: `${threshold.toFixed(1)}°F (${toC(threshold).toFixed(1)}°C)`, sub: "Triggers Dam Release with Cool-Mix Flows" },
   ];
   const statTop = ruleY + 24;
   const colWidth = (chartWidth - padX * 2) / statEntries.length;
@@ -709,7 +709,7 @@ async function buildExportSvg() {
     // Mirrors the on-page legend's cool-mix halo marker (a soft wide
     // glow behind a thin core line); only shown when the "Cool Mix
     // Flows" toggle is on, same as it behaves on-page.
-    ...(showCoolMix ? [{ label: "Cool Mix Flows Active", color: "#2C0E09", type: "halo" }] : []),
+    ...(showCoolMix ? [{ label: "Cool-Mix Flows Active", color: "#2C0E09", type: "halo" }] : []),
     ...(showHistorical ? [{ label: "Historical", color: "#705C57", dash: "none", type: "line" }] : []),
     ...(showMedian ? [{ label: "Median", color: "#57423E", dash: "6,3", type: "line" }] : []),
     ...(showBand ? [{ label: "10th–90th Percentile", color: "#93A87B", type: "band" }] : []),
@@ -864,7 +864,7 @@ In recent years, river temperatures have been trending warmer as declining water
 </p>
 
 <p class="last-updated">
-At 59.5 ℉ (15.5 ℃), conditions warrant cool mix flows, a management tool introduced in 2024 to help cool the Colorado River. Cool-mix flows release colder water from the deepest outlets of Glen Canyon Dam. Cooler water makes conditions less favorable for nonnative fish, such as smallmouth bass, to reproduce and become established. Limiting the spread of these fish can help protect imperiled native species like the humpback chub.
+At 59.5 ℉ (15.5 ℃), conditions warrant cool-mix flows, a management tool introduced in 2024 to help cool the Colorado River. Cool-mix flows release colder water from the deepest outlets of Glen Canyon Dam. Cooler water makes conditions less favorable for nonnative fish, such as smallmouth bass, to reproduce and become established. Limiting the spread of these fish can help protect imperiled native species like the humpback chub.
 </p>
 
 
