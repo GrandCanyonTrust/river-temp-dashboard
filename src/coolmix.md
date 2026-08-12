@@ -185,7 +185,7 @@ In 2024 and 2025, managers conducted cool-mix flow experiments to lower water te
 </p>
 
 <p class="last-updated">
-Reclamation determined not to implement cool mix flows in 2026.
+In 2026, water managers decided not to implement cool mix flows.
 </p>
 
 ```js
