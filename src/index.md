@@ -163,6 +163,7 @@ const lastUpdated = d3.max(parsed.filter(d => d.date !== null), d => d.date);
 const lastUpdatedStr = latest?.date
   ? latest.date.toLocaleDateString("en-US", {year: "numeric", month: "long", day: "numeric"})
   : "unknown";
+const maxObservedWaterTemp = d3.max(parsed.filter(d => d.tmp !== null), d => d.tmp);
 ```
 
 ```js
@@ -353,11 +354,11 @@ const chartPlot = resize((width) => Plot.plot({
   },
   y: {
     label: "Water temperature (°F)",
-    domain: [toF(7), toF(22)],
+    domain: [toF(7), maxObservedWaterTemp + 1.6],
   },
   marks: [
     Plot.rectY([{}], {
-      x1: 0, x2: 365, y1: threshold, y2: toF(22),
+      x1: 0, x2: 365, y1: threshold, y2: maxObservedWaterTemp + 1.6,
       fill: "#B03823", fillOpacity: 0.07,
     }),
     ...(showBand ? [Plot.areaY(historicalData, {
