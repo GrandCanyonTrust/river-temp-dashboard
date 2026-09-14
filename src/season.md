@@ -47,6 +47,7 @@ const latest = dataCurrent[dataCurrent.length - 1];
 const seasonHigh = d3.max(dataCurrent, d => d.tmp);
 const seasonHighDate = dataCurrent.find(d => d.tmp === seasonHigh)?.date;
 const daysAbove = dataCurrent.filter(d => d.tmp >= threshold).length;
+const maxObservedWaterTemp = d3.max(parsed.filter(d => d.tmp !== null), d => d.tmp);
 ```
 
 ```js
@@ -217,12 +218,12 @@ const chartCurrent = resize((width) => Plot.plot({
   ticks: d3.utcMonths(d3.utcMonth(d3.min(dataCurrent, d => d.date)), d3.utcDay.offset(d3.max(dataCurrent, d => d.date), 1)),
   tickFormat: d3.utcFormat("%b"),
 },
-  y: { label: "Water temperature (°F)", domain: [toF(7), toF(22)] },
+  y: { label: "Water temperature (°F)", domain: [toF(7), maxObservedWaterTemp + 1.6] },
   marks: [
     Plot.rectY([{}], {
       x1: d3.min(dataCurrent, d => d.date),
       x2: d3.max(dataCurrent, d => d.date),
-      y1: threshold, y2: toF(22),
+      y1: threshold, y2: maxObservedWaterTemp + 1.6,
       fill: "#B03823", fillOpacity: 0.07,
     }),
     Plot.ruleY([threshold], {
@@ -318,10 +319,10 @@ const yoyChart = resize((width) => Plot.plot({
     },
     ticks: [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
   },
-  y: { label: "Water temperature (°F)", domain: [toF(7), toF(22)] },
+  y: { label: "Water temperature (°F)", domain: [toF(7), maxObservedWaterTemp + 1.6] },
   marks: [
     Plot.rectY([{}], {
-      x1: 0, x2: 365, y1: threshold, y2: toF(22),
+      x1: 0, x2: 365, y1: threshold, y2: maxObservedWaterTemp + 1.6,
       fill: "#B03823", fillOpacity: 0.07,
     }),
     Plot.ruleY([threshold], {
